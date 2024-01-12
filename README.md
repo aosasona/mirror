@@ -1,6 +1,9 @@
 # Mirror 🪞
 
-> Previously known as `gots`
+> [!NOTE]
+> This package was previously known as [`gots`](https://github.com/aosasona/gots). Same code, different name, and development will continue here.
+
+[![Go Reference](https://pkg.go.dev/badge/go.trulyao.dev/mirror.svg)](https://pkg.go.dev/go.trulyao.dev/mirror)
 
 Generate Typescript types from Go types during runtime.
 
@@ -8,7 +11,7 @@ View generated example [here](./examples/example.ts)
 
 ## You should know...
 
-The generated types may not always match what you expect (especially in the cases of embedded structs) and might just be an `any` or `unknown`, to be more specific, it is advised to use the type property in the `mirror` or `ts` struct tag to specify the type yourself. Mirror is not designed or built to be or ever be 100% accurate, just enough to have you setup and ready to communicate with your Go service/app/API _safely_ in Typescript, knowing a large part of what to send and expect back.
+The generated types may not always match what you expect (especially embedded structs) and might just be an `any` or `unknown`, to be more specific, it is advised to use the type property in the `mirror` or `ts` struct tag to specify the type yourself. Mirror is not designed or built to be or ever be 100% accurate, just enough to have you setup and ready to communicate with your Go service/app/API _safely_ in Typescript, knowing a large part of what to send and expect back.
 
 # Installation
 
