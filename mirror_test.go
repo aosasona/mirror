@@ -57,3 +57,67 @@ func Test_Generate(t *testing.T) {
 		}
 	}
 }
+
+func Test_GeneratePrivate(t *testing.T) {
+	type Test struct {
+		Name                 string
+		Data                 any
+		ExpectedWhenEnabled  string
+		ExpectedWhenDisabled string
+		ExpectErr            bool
+	}
+
+	type Entry struct {
+		firstName         string `json:"first_name"`
+		ExportedFirstName string `json:"exported_first_name"`
+	}
+
+	tests := []Test{
+		{
+			Name:                 "test integer",
+			Data:                 1,
+			ExpectedWhenEnabled:  "export type int = number;",
+			ExpectedWhenDisabled: "export type int = number;",
+			ExpectErr:            false,
+		},
+		{
+			Name: "test struct",
+			Data: Entry{},
+			ExpectedWhenEnabled: `export type Entry = {
+    first_name: string;
+    exported_first_name: string;
+};`,
+			ExpectedWhenDisabled: `export type Entry = {
+    exported_first_name: string;
+};`,
+			ExpectErr: false,
+		},
+	}
+
+	// Test unexported field with AllowUnexportedFields enabled
+	m := New(config.Config{Enabled: Bool(true), AllowUnexportedFields: Bool(true)})
+
+	for _, test := range tests {
+		got, err := m.GenerateSingle(test.Data)
+		if err != nil && !test.ExpectErr {
+			t.Errorf("Expected no error, got %v", err)
+		}
+
+		if got != test.ExpectedWhenEnabled {
+			t.Errorf("fail(%s): expected %s, got %s", test.Name, test.ExpectedWhenEnabled, got)
+		}
+	}
+
+	// Test unexported field with AllowUnexportedFields disabled
+	m.config.AllowUnexportedFields = Bool(false)
+	for _, test := range tests {
+		got, err := m.GenerateSingle(test.Data)
+		if err != nil && !test.ExpectErr {
+			t.Errorf("Expected no error, got %v", err)
+		}
+
+		if got != test.ExpectedWhenDisabled {
+			t.Errorf("fail(%s): expected %s, got %s", test.Name, test.ExpectedWhenDisabled, got)
+		}
+	}
+}

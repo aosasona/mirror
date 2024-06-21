@@ -13,19 +13,15 @@ func SetDebug(v bool) {
 
 // Pointers have been used here to make sure the user actually sets the value and not just uses the default value
 type Config struct {
-	Enabled           *bool   // can be used to disable or enable the generation of types, defaults to false
-	OutputFile        *string // if nil, will default to types.ts in the current directory
-	UseTypeForObjects *bool   // if true, will use `type Foo = ...` instead of `interface Foo {...}`, defaults to true
-	ExpandObjectTypes *bool   // if true, will expand object types instead of just using the name (e.g foo: { bar: string } instead of foo: Bar)
-	PreferUnknown     *bool   // if true, will prefer unknown over any
+	Enabled               *bool   // can be used to disable or enable the generation of types, defaults to false
+	OutputFile            *string // if nil, will default to types.ts in the current directory
+	UseTypeForObjects     *bool   // if true, will use `type Foo = ...` instead of `interface Foo {...}`, defaults to true
+	ExpandObjectTypes     *bool   // if true, will expand object types instead of just using the name (e.g foo: { bar: string } instead of foo: Bar)
+	PreferUnknown         *bool   // if true, will prefer unknown over any
+	AllowUnexportedFields *bool   // if true, will include private fields
 
 	// TODO: implement custom types
 	CustomTypes map[string]string // custom types to be used in the generation of types
-}
-
-// TODO: implement this - temporarily private
-func (c Config) readFromFile(path string) error {
-	return nil
 }
 
 func (c Config) EnabledOrDefault() bool {
@@ -71,11 +67,20 @@ func (c Config) PreferUnknownOrDefault() bool {
 	return *c.PreferUnknown
 }
 
+func (c Config) AllowUnexportedFieldsOrDefault() bool {
+	if c.AllowUnexportedFields == nil {
+		return false
+	}
+
+	return *c.AllowUnexportedFields
+}
+
 func (c Config) Merge(other Config) Config {
 	enabled := c.EnabledOrDefault()
 	outputFile := c.OutputFileOrDefault()
 	useTypeForObjects := c.UseTypeForObjectsOrDefault()
 	expandObjectTypes := c.ExpandObjectTypesOrDefault()
+	allowUnexportedFields := c.AllowUnexportedFieldsOrDefault()
 
 	if other.Enabled != nil {
 		enabled = *other.Enabled
@@ -93,10 +98,15 @@ func (c Config) Merge(other Config) Config {
 		expandObjectTypes = *other.ExpandObjectTypes
 	}
 
+	if other.AllowUnexportedFields != nil {
+		allowUnexportedFields = *other.AllowUnexportedFields
+	}
+
 	return Config{
-		Enabled:           &enabled,
-		OutputFile:        &outputFile,
-		UseTypeForObjects: &useTypeForObjects,
-		ExpandObjectTypes: &expandObjectTypes,
+		Enabled:               &enabled,
+		OutputFile:            &outputFile,
+		UseTypeForObjects:     &useTypeForObjects,
+		ExpandObjectTypes:     &expandObjectTypes,
+		AllowUnexportedFields: &allowUnexportedFields,
 	}
 }

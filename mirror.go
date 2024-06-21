@@ -38,9 +38,10 @@ type Config = config.Config
 
 func DefaultConfig() Config {
 	return config.Config{
-		Enabled:           Bool(true),
-		OutputFile:        String("types.ts"),
-		UseTypeForObjects: Bool(true),
+		Enabled:               Bool(true),
+		OutputFile:            String("types.ts"),
+		UseTypeForObjects:     Bool(true),
+		AllowUnexportedFields: Bool(false),
 	}
 }
 
@@ -112,9 +113,10 @@ func (m *Mirror) Generate() (string, error) {
 	}
 
 	gn := generator.NewGenerator(generator.Opts{
-		UseTypeForObjects: m.config.UseTypeForObjectsOrDefault(),
-		ExpandStructs:     m.config.ExpandObjectTypesOrDefault(),
-		PreferUnknown:     m.config.PreferUnknownOrDefault(),
+		UseTypeForObjects:     m.config.UseTypeForObjectsOrDefault(),
+		ExpandStructs:         m.config.ExpandObjectTypesOrDefault(),
+		PreferUnknown:         m.config.PreferUnknownOrDefault(),
+		AllowUnexportedFields: m.config.AllowUnexportedFieldsOrDefault(),
 	})
 
 	for _, src := range m.sources {
@@ -134,9 +136,10 @@ func (m *Mirror) GenerateSingle(src any) (string, error) {
 	}
 
 	gn := generator.NewGenerator(generator.Opts{
-		UseTypeForObjects: m.config.UseTypeForObjectsOrDefault(),
-		ExpandStructs:     m.config.ExpandObjectTypesOrDefault(),
-		PreferUnknown:     m.config.PreferUnknownOrDefault(),
+		UseTypeForObjects:     m.config.UseTypeForObjectsOrDefault(),
+		ExpandStructs:         m.config.ExpandObjectTypesOrDefault(),
+		PreferUnknown:         m.config.PreferUnknownOrDefault(),
+		AllowUnexportedFields: m.config.AllowUnexportedFieldsOrDefault(),
 	})
 
 	return gn.Generate(src) + ";", nil
