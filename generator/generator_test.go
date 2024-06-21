@@ -63,3 +63,52 @@ func Test_ObjectTypeGeneration(t *testing.T) {
 		}
 	}
 }
+
+type Entry struct {
+	Title     string `json:"title" mirror:"name:entry_name"`
+	Link      string `json:"link"`
+	isPrivate bool   `json:"is_private"`
+}
+
+type BoxedEntry struct {
+	Name  string
+	entry Entry
+}
+
+func Test_PrivateFieldExport(t *testing.T) {
+	tests := []struct {
+		Name     string
+		Source   any
+		Expected string
+	}{
+		{
+			Name:   "entry",
+			Source: Entry{},
+			Expected: `export type Entry = {
+    entry_name: string;
+    link: string;
+    is_private: boolean;
+}`,
+		},
+		{
+			Name:   "boxed_entry",
+			Source: BoxedEntry{},
+			Expected: `export type BoxedEntry = {
+    Name: string;
+    entry: Entry;
+}`,
+		},
+	}
+
+	g := NewGenerator(Opts{
+		AllowUnexportedFields: true,
+		UseTypeForObjects:     true,
+	})
+
+	for _, tt := range tests {
+		got := g.Generate(tt.Source)
+		if got != tt.Expected {
+			t.Errorf("`%s`: got\n%v, want\n%v", tt.Name, got, tt.Expected)
+		}
+	}
+}

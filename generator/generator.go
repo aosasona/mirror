@@ -14,28 +14,31 @@ const TAB = "    "
 
 var tg *TypeGenerator
 
-type Generator struct {
-	useTypeForObjects bool
+type CodeGenerator struct {
+	allowUnexportedFields bool
+	useTypeForObjects     bool
 }
 
 type Opts struct {
-	UseTypeForObjects bool
-	ExpandStructs     bool // whether to expand struct types into object types like { foo: string } instead of the name
-	PreferUnknown     bool // whether to prefer unknown over any
+	AllowUnexportedFields bool // allow or disallow unexported fields
+	UseTypeForObjects     bool // use type instead of interface for objects
+	ExpandStructs         bool // whether to expand struct types into object types like { foo: string } instead of the name
+	PreferUnknown         bool // whether to prefer unknown over any
 }
 
-func NewGenerator(opts Opts) *Generator {
+func NewGenerator(opts Opts) *CodeGenerator {
 	tg = NewTypeGenerator(TypeGeneratorOpts{
 		ExpandStruct:  opts.ExpandStructs,
 		PreferUnknown: opts.PreferUnknown,
 	})
 
-	return &Generator{
-		useTypeForObjects: opts.UseTypeForObjects,
+	return &CodeGenerator{
+		allowUnexportedFields: opts.AllowUnexportedFields,
+		useTypeForObjects:     opts.UseTypeForObjects,
 	}
 }
 
-func (g *Generator) Generate(src any) string {
+func (g *CodeGenerator) Generate(src any) string {
 	var (
 		srcType = reflect.TypeOf(src)
 		result  string
@@ -59,7 +62,7 @@ func (g *Generator) Generate(src any) string {
 	return fmt.Sprintf(result, srcType.Name())
 }
 
-func (g *Generator) generateObjectType(src reflect.Type) string {
+func (g *CodeGenerator) generateObjectType(src reflect.Type) string {
 	var result string
 
 	for i := 0; i < src.NumField(); i++ {
@@ -73,7 +76,7 @@ func (g *Generator) generateObjectType(src reflect.Type) string {
 			continue
 		}
 
-		if !field.IsExported() || tag.Skip {
+		if (!field.IsExported() && !g.allowUnexportedFields) || tag.Skip {
 			continue
 		}
 
