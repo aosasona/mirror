@@ -1,6 +1,7 @@
 package mirrorparser
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -26,10 +27,13 @@ func Parse(field reflect.StructField, targetTag ...*tag.Tag) (*tag.Tag, error) {
 	// check if there is a `ts` tag in the field (for backwards compatibility)
 	if mirrorTag == "" {
 		mirrorTag = strings.TrimSpace(field.Tag.Get("ts"))
-
-		if mirrorTag == "" {
-			return tag, nil
+		if mirrorTag != "" {
+			fmt.Println("[WARN:MIRROR] The legacy `ts` struct tag has been deprecated and will be removed in a future release")
 		}
+	}
+
+	if mirrorTag == "" {
+		return tag, nil
 	}
 
 	if mirrorTag == "-" {
