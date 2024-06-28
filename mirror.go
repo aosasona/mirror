@@ -82,8 +82,6 @@ func (m *Mirror) Commit(output string) error {
 		return nil
 	}
 
-	defer func() { m.sources = Sources{} }()
-
 	if m.config.OutputFileOrDefault() == "" {
 		return ErrNoOutputFile
 	}
@@ -98,6 +96,7 @@ func (m *Mirror) Commit(output string) error {
 		return err
 	}
 
+	m.sources = Sources{}
 	return nil
 }
 
