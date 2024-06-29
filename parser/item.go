@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"go.trulyao.dev/mirror/meta"
+	"go.trulyao.dev/mirror/extractor/meta"
 )
 
 type ItemType string

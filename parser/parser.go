@@ -4,8 +4,8 @@ import (
 	"reflect"
 
 	"go.trulyao.dev/mirror/extractor"
+	"go.trulyao.dev/mirror/extractor/meta"
 	"go.trulyao.dev/mirror/helper"
-	"go.trulyao.dev/mirror/meta"
 )
 
 func ParseItem(field reflect.Type) (Item, error) {
