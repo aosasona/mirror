@@ -5,11 +5,11 @@ import (
 	"reflect"
 	"strings"
 
+	"go.trulyao.dev/mirror/extractor/meta"
 	"go.trulyao.dev/mirror/helper"
-	"go.trulyao.dev/mirror/meta"
 )
 
-func Parse(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
+func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 	var fieldMeta *meta.Meta
 
 	if root != nil {

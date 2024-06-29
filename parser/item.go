@@ -1,27 +1,31 @@
 package parser
 
-import "go.trulyao.dev/mirror/parser/tag"
+import (
+	"go.trulyao.dev/mirror/meta"
+)
 
-type ItemType int
+type ItemType string
 
 const (
-	TypeInteger ItemType = iota
-	TypeFloat
-	TypeString
-	TypeBoolean
-	TypeClass
-	TypeList
-	TypeMap
+	TypeInteger ItemType = "int"
+	TypeFloat   ItemType = "float"
+	TypeString  ItemType = "string"
+	TypeBoolean ItemType = "bool"
+	TypeStruct  ItemType = "class"
+	TypeList    ItemType = "list"
+	TypeArray   ItemType = "array"
+	TypeMap     ItemType = "map"
 )
 
 type Field struct {
 	Name    string
 	RawType ItemType
-	Tag     *tag.Tag
+	Meta    *meta.Meta
 }
 
 type Item interface {
 	ItemName() string
+	ItemType() ItemType
 }
 
 // Represents a struct type
@@ -49,14 +53,26 @@ func (s Scalar) ItemName() string {
 	return s.Name
 }
 
+func (s Scalar) ItemType() ItemType {
+	return s.Type
+}
+
 // STRUCT
 func (s Struct) ItemName() string {
 	return s.Name
 }
 
+func (s Struct) ItemType() ItemType {
+	return TypeStruct
+}
+
 // PAIR
 func (p Pair) ItemName() string {
 	return p.Name
+}
+
+func (p Pair) ItemType() ItemType {
+	return TypeMap
 }
 
 var (

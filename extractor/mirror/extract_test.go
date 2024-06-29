@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"go.trulyao.dev/mirror/meta"
+	"go.trulyao.dev/mirror/extractor/meta"
 )
 
 type TestStruct struct {

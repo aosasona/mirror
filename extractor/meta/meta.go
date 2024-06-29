@@ -1,6 +1,8 @@
 package meta
 
-import "regexp"
+import (
+	"regexp"
+)
 
 var FieldNameRegex = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
 
