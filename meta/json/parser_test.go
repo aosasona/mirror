@@ -1,10 +1,10 @@
-package jsonparser
+package jsonmeta
 
 import (
 	"reflect"
 	"testing"
 
-	"go.trulyao.dev/mirror/parser/tag"
+	"go.trulyao.dev/mirror/meta"
 )
 
 type TestStruct struct {
@@ -43,13 +43,13 @@ func TestJSONTagParser_Parse(t *testing.T) {
 	tests := []struct {
 		Name     string
 		Source   reflect.StructField
-		Expected *tag.Tag
+		Expected *meta.Meta
 		WantErr  bool
 	}{
 		{
 			Name:   "properly parse tag with custom name",
 			Source: nameField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "Name",
 				Name:         "first_name",
 				Skip:         false,
@@ -59,7 +59,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "should be optional",
 			Source: omitemptyField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "OmitEmpty",
 				Name:         "OmitEmpty",
 				Skip:         false,
@@ -69,7 +69,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "skip tag",
 			Source: skipField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "ShouldSkip",
 				Name:         "ShouldSkip",
 				Skip:         true,
@@ -84,7 +84,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "produce tag with default name",
 			Source: defaultField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "Default",
 				Name:         "Default",
 				Skip:         false,
@@ -94,7 +94,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "properly handle tagless fields",
 			Source: taglessField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "Tagless",
 				Name:         "Tagless",
 				Skip:         false,
@@ -104,7 +104,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "properly handle properly formed tag",
 			Source: propertlyFormedField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "Formed",
 				Name:         "formed",
 				Skip:         false,
@@ -114,7 +114,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "properly handle string tag",
 			Source: asStrField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "AsStr",
 				Name:         "AsStr",
 				Skip:         false,
@@ -125,7 +125,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "properly handle dash as name tag",
 			Source: dashField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "Dash",
 				Name:         "-",
 				Skip:         false,
@@ -135,7 +135,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "properly handle tag with name only and empty second pair",
 			Source: withNameOnlyField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "WithNameOnly",
 				Name:         "name",
 				Skip:         false,
@@ -145,7 +145,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, err := Parse(test.Source)
+		got, err := Parse(test.Source, nil)
 		if (err != nil) != test.WantErr {
 			t.Errorf("`%s`: unexpected error: %v", test.Name, err)
 		}
