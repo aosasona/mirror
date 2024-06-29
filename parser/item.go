@@ -37,8 +37,9 @@ type Struct struct {
 // Represents a scalar type like string, number, boolean, etc.
 // But it also includes arrays and slices
 type Scalar struct {
-	Name string
-	Type ItemType
+	Name     string
+	Type     ItemType
+	Nullable bool
 }
 
 // Represents a map type
