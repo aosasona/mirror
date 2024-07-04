@@ -11,21 +11,24 @@ const (
 	TypeFloat   ItemType = "float"
 	TypeString  ItemType = "string"
 	TypeBoolean ItemType = "bool"
-	TypeStruct  ItemType = "class"
+	TypeStruct  ItemType = "struct"
 	TypeList    ItemType = "list"
 	TypeArray   ItemType = "array"
 	TypeMap     ItemType = "map"
 )
 
+// General interface to be adopted by anything that can or should be represented as an item
+// NOTE: probably should be called node but I will come back later
+type Item interface {
+	ItemName() string
+	ItemType() ItemType
+}
+
+// Representing a field in a struct
 type Field struct {
 	Name    string
 	RawType ItemType
 	Meta    *meta.Meta
-}
-
-type Item interface {
-	ItemName() string
-	ItemType() ItemType
 }
 
 // Represents a struct type
@@ -43,7 +46,7 @@ type Scalar struct {
 }
 
 // Represents a map type
-type Pair struct {
+type Map struct {
 	Name  string
 	Key   Item
 	Value Item
@@ -68,16 +71,16 @@ func (s Struct) ItemType() ItemType {
 }
 
 // PAIR
-func (p Pair) ItemName() string {
+func (p Map) ItemName() string {
 	return p.Name
 }
 
-func (p Pair) ItemType() ItemType {
+func (p Map) ItemType() ItemType {
 	return TypeMap
 }
 
 var (
 	_ Item = Scalar{}
 	_ Item = Struct{}
-	_ Item = Pair{}
+	_ Item = Map{}
 )
