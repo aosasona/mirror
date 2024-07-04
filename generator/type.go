@@ -8,7 +8,7 @@ import (
 
 	"go.trulyao.dev/mirror/config"
 	"go.trulyao.dev/mirror/parser"
-	"go.trulyao.dev/mirror/parser/tag"
+	"go.trulyao.dev/mirror/parser/tag" // unnecessary
 )
 
 type TypeGenerator struct {
@@ -134,8 +134,12 @@ func (tg *TypeGenerator) getMappedType(src reflect.Type) TSType {
 		return TypeString
 	case reflect.Bool:
 		return TypeBool
+	// NOTE: come back to this
+	// ======
 	case reflect.Interface:
 		return TypeAny
+	// ======
+
 	case reflect.Map:
 		keyType := src.Key()
 		valueType := src.Elem()
