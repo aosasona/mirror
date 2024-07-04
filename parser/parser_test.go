@@ -3,124 +3,64 @@ package parser
 import (
 	"reflect"
 	"testing"
-
-	"go.trulyao.dev/mirror/parser/tag"
 )
 
-type TestStruct struct {
-	Name        string   `json:"fname,omitempty" ts:"name:first_name"`
-	LastName    string   `json:"last_name"`
-	Invalid     string   `mirror:"name:,random_opt"`
-	Phone       string   `mirror:"name:phone_number,optional:true"`
-	BMI         string   `json:"bmi" mirror:"-"`
-	NextOfKin   string   `mirror:"name:next_of_kin,skip:true"`
-	Connections []string `mirror:"name:connected_ids, type:Array<string>, optional:true"`
+type Test struct {
+	Description string
+	Source      any
+	Expected    Item
+	WantErr     bool
 }
 
-var testStruct = reflect.TypeOf(TestStruct{})
+func Test_ParseItem(t *testing.T) {
+	type (
+		Foo   int
+		Foo8  int8
+		Foo16 int16
+		Foo32 int32
+		Foo64 int64
+	)
 
-func TestJSONTagParser_Parse(t *testing.T) {
-	ok := true
-
-	nameField, ok := testStruct.FieldByName("Name")
-	lastNameField, ok := testStruct.FieldByName("LastName")
-	invalidField, ok := testStruct.FieldByName("Invalid")
-	phoneField, ok := testStruct.FieldByName("Phone")
-	bmiField, ok := testStruct.FieldByName("BMI")
-	nextOfKinField, ok := testStruct.FieldByName("NextOfKin")
-	connectionsField, ok := testStruct.FieldByName("Connections")
-
-	if !ok {
-		panic("field not found")
-	}
-
-	tests := []struct {
-		Name     string
-		Source   reflect.StructField
-		Expected *tag.Tag
-		WantErr  bool
-	}{
+	tests := []Test{
 		{
-			Name:   "parse json and ts tags and make json tag the original name",
-			Source: nameField,
-			Expected: &tag.Tag{
-				OriginalName: "Name",
-				Name:         "first_name",
-				Skip:         false,
-				Optional:     true,
-			},
+			Description: "parse integer",
+			Source:      *new(Foo),
+			Expected:    Scalar{"Foo", TypeInteger, false},
 		},
 		{
-			Name:   "properly parse tag using v2.0 mirror tag",
-			Source: lastNameField,
-			Expected: &tag.Tag{
-				OriginalName: "LastName",
-				Name:         "last_name",
-				Skip:         false,
-				Optional:     false,
-			},
+			Description: "parse i8",
+			Source:      *new(Foo8),
+			Expected:    Scalar{"Foo8", TypeInteger, false},
 		},
 		{
-			Name:   "gracefully handle invalid tag (kv pair)",
-			Source: invalidField,
-			Expected: &tag.Tag{
-				OriginalName: "Invalid",
-				Name:         "Invalid",
-				Skip:         false,
-				Optional:     false,
-			},
+			Description: "parse i16",
+			Source:      *new(Foo16),
+			Expected:    Scalar{"Foo16", TypeInteger, false},
 		},
 		{
-			Name:   "parse name and optional props",
-			Source: phoneField,
-			Expected: &tag.Tag{
-				OriginalName: "Phone",
-				Name:         "phone_number",
-				Skip:         false,
-				Optional:     true,
-			},
+			Description: "parse i32",
+			Source:      *new(Foo32),
+			Expected:    Scalar{"Foo32", TypeInteger, false},
 		},
 		{
-			Name:   "skip tag using -",
-			Source: bmiField,
-			Expected: &tag.Tag{
-				OriginalName: "BMI",
-				Name:         "bmi",
-				Skip:         true,
-				Optional:     false,
-			},
-		},
-		{
-			Name:   "skip tag using skip:true",
-			Source: nextOfKinField,
-			Expected: &tag.Tag{
-				OriginalName: "NextOfKin",
-				Name:         "NextOfKin",
-				Skip:         true,
-				Optional:     false,
-			},
-		},
-		{
-			Name:   "parse all props and override type (with whitespace) - optional",
-			Source: connectionsField,
-			Expected: &tag.Tag{
-				OriginalName: "Connections",
-				Name:         "connected_ids",
-				Skip:         false,
-				Optional:     true,
-				Type:         "Array<string>",
-			},
+			Description: "parse i64",
+			Source:      *new(Foo64),
+			Expected:    Scalar{"Foo64", TypeInteger, false},
 		},
 	}
 
-	for _, test := range tests {
-		got, err := Parse(test.Source)
-		if (err != nil) != test.WantErr {
-			t.Errorf("failed to run case `%s`: unexpected error: %v", test.Name, err)
+	for _, tt := range tests {
+		got, err := ParseItem(reflect.TypeOf(tt.Source))
+		if err != nil && !tt.WantErr {
+			t.Errorf("wanted NO error, got error `%s`", tt.Description)
 		}
 
-		if !reflect.DeepEqual(got, test.Expected) {
-			t.Errorf("failed to run case `%s`: expected %+v, got %+v", test.Name, test.Expected, got)
+		if err == nil && tt.WantErr {
+			t.Errorf("wanted error, got no error in `%s`", tt.Description)
+		}
+
+		if !reflect.DeepEqual(got, tt.Expected) {
+			t.Errorf("wanted %v, got %v", tt.Expected, got)
 		}
 	}
 }
