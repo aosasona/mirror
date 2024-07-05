@@ -25,16 +25,16 @@ var testStruct = reflect.TypeOf(TestStruct{})
 func TestJSONTagParser_Parse(t *testing.T) {
 	ok := true
 
-	nameField, ok := testStruct.FieldByName("Name")
-	omitemptyField, ok := testStruct.FieldByName("OmitEmpty")
-	skipField, ok := testStruct.FieldByName("ShouldSkip")
-	invalidField, ok := testStruct.FieldByName("Invalid")
-	defaultField, ok := testStruct.FieldByName("Default")
-	taglessField, ok := testStruct.FieldByName("Tagless")
-	propertlyFormedField, ok := testStruct.FieldByName("Formed")
-	asStrField, ok := testStruct.FieldByName("AsStr")
-	dashField, ok := testStruct.FieldByName("Dash")
-	withNameOnlyField, ok := testStruct.FieldByName("WithNameOnly")
+	nameField, _ := testStruct.FieldByName("Name")
+	omitemptyField, _ := testStruct.FieldByName("OmitEmpty")
+	skipField, _ := testStruct.FieldByName("ShouldSkip")
+	invalidField, _ := testStruct.FieldByName("Invalid")
+	defaultField, _ := testStruct.FieldByName("Default")
+	taglessField, _ := testStruct.FieldByName("Tagless")
+	propertlyFormedField, _ := testStruct.FieldByName("Formed")
+	asStrField, _ := testStruct.FieldByName("AsStr")
+	dashField, _ := testStruct.FieldByName("Dash")
+	withNameOnlyField, _ := testStruct.FieldByName("WithNameOnly")
 
 	if !ok {
 		panic("field not found")
@@ -145,9 +145,13 @@ func TestJSONTagParser_Parse(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, err := Parse(test.Source, nil)
-		if (err != nil) != test.WantErr {
-			t.Errorf("`%s`: unexpected error: %v", test.Name, err)
+		got, err := Extract(test.Source, nil)
+		if err != nil && !test.WantErr {
+			t.Errorf("[%s] wanted NO error, got error: %v", test.Name, err)
+		}
+
+		if err == nil && test.WantErr {
+			t.Errorf("[%s] wanted error, got no error", test.Name)
 		}
 
 		if !reflect.DeepEqual(got, test.Expected) {
