@@ -18,8 +18,8 @@ func Test_MergeConfig(t *testing.T) {
 			original: Config{
 				Enabled: helper.Bool(true),
 				Targets: []Target{
-					{"test.swift", "bar/baz", LanguageSwift},
-					{"test.ts", "foo/bar", LanguageTypescript},
+					{"test.swift", "bar/baz", LangSwift},
+					{"test.ts", "foo/bar", LangTypescript},
 				},
 				ExpandObjectTypes:     helper.Bool(true),
 				UseTypeForObjects:     helper.Bool(true),
@@ -32,7 +32,7 @@ func Test_MergeConfig(t *testing.T) {
 			target: Config{
 				Enabled: helper.Bool(false),
 				Targets: []Target{
-					{"test.ts", "foo2/bar", LanguageTypescript},
+					{"test.ts", "foo2/bar", LangTypescript},
 				},
 				ExpandObjectTypes:     helper.Bool(false),
 				UseTypeForObjects:     helper.Bool(true),
@@ -45,8 +45,8 @@ func Test_MergeConfig(t *testing.T) {
 			expected: Config{
 				Enabled: helper.Bool(false),
 				Targets: []Target{
-					{"test.swift", "bar/baz", LanguageSwift},
-					{"test.ts", "foo2/bar", LanguageTypescript},
+					{"test.swift", "bar/baz", LangSwift},
+					{"test.ts", "foo2/bar", LangTypescript},
 				},
 				ExpandObjectTypes:     helper.Bool(false),
 				UseTypeForObjects:     helper.Bool(true),
@@ -79,27 +79,51 @@ func Test_MergeConfig(t *testing.T) {
 		}
 
 		if *result.ExpandObjectTypes != *tc.expected.ExpandObjectTypes {
-			t.Errorf("Expected ExpandObjectTypes to be %v, got %v", *tc.expected.ExpandObjectTypes, *result.ExpandObjectTypes)
+			t.Errorf(
+				"Expected ExpandObjectTypes to be %v, got %v",
+				*tc.expected.ExpandObjectTypes,
+				*result.ExpandObjectTypes,
+			)
 		}
 
 		if *result.UseTypeForObjects != *tc.expected.UseTypeForObjects {
-			t.Errorf("Expected UseTypeForObjects to be %v, got %v", *tc.expected.UseTypeForObjects, *result.UseTypeForObjects)
+			t.Errorf(
+				"Expected UseTypeForObjects to be %v, got %v",
+				*tc.expected.UseTypeForObjects,
+				*result.UseTypeForObjects,
+			)
 		}
 
 		if *result.PreferUnknown != *tc.expected.PreferUnknown {
-			t.Errorf("Expected PreferUnknown to be %v, got %v", *tc.expected.PreferUnknown, *result.PreferUnknown)
+			t.Errorf(
+				"Expected PreferUnknown to be %v, got %v",
+				*tc.expected.PreferUnknown,
+				*result.PreferUnknown,
+			)
 		}
 
 		if *result.AllowUnexportedFields != *tc.expected.AllowUnexportedFields {
-			t.Errorf("Expected AllowUnexportedFields to be %v, got %v", *tc.expected.AllowUnexportedFields, *result.AllowUnexportedFields)
+			t.Errorf(
+				"Expected AllowUnexportedFields to be %v, got %v",
+				*tc.expected.AllowUnexportedFields,
+				*result.AllowUnexportedFields,
+			)
 		}
 
 		if result.IndentationType != tc.expected.IndentationType {
-			t.Errorf("Expected IndentationType to be %v, got %v", tc.expected.IndentationType, result.IndentationType)
+			t.Errorf(
+				"Expected IndentationType to be %v, got %v",
+				tc.expected.IndentationType,
+				result.IndentationType,
+			)
 		}
 
 		if *result.SpaceCount != *tc.expected.SpaceCount {
-			t.Errorf("Expected SpaceCount to be %v, got %v", *tc.expected.SpaceCount, *result.SpaceCount)
+			t.Errorf(
+				"Expected SpaceCount to be %v, got %v",
+				*tc.expected.SpaceCount,
+				*result.SpaceCount,
+			)
 		}
 	}
 }

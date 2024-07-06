@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+
+	"go.trulyao.dev/mirror/helper"
 )
 
 type Indentation int
@@ -11,19 +13,6 @@ const (
 	Space
 	Tab
 )
-
-type Language string
-
-const (
-	LanguageTypescript Language = "typescript"
-	LanguageSwift      Language = "swift"
-)
-
-type Target struct {
-	Filename  string
-	Directory string
-	Language  Language
-}
 
 // Debug is a global variable that can be used to enable or disable debug mode
 var Debug = false
@@ -46,6 +35,22 @@ type Config struct {
 
 	// TODO: implement custom types
 	CustomTypes map[string]string // custom types to be used in the generation of types
+}
+
+func DefaultConfig() Config {
+	return Config{
+		Enabled: helper.Bool(true),
+		Targets: []Target{
+			{Filename: "generated.ts", PathToDirectory: ".", Language: LangTypescript},
+		},
+		UseTypeForObjects:     helper.Bool(true),
+		ExpandObjectTypes:     helper.Bool(true),
+		PreferUnknown:         helper.Bool(false),
+		AllowUnexportedFields: helper.Bool(false),
+
+		IndentationType: Space,
+		SpaceCount:      helper.Int(4),
+	}
 }
 
 func (c Config) EnabledOrDefault() bool {
