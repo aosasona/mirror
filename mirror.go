@@ -23,8 +23,8 @@ var (
 	String = helper.String
 	Bool   = helper.Bool
 
-	ErrNoSources    = errors.New("no sources provided")
-	ErrNoOutputFile = errors.New("no output file provided")
+	ErrNoSources        = errors.New("no sources provided")
+	ErrNoTargetsDefined = errors.New("no targets provided, at least one target must be defined")
 )
 
 const FileHeader = `/*
@@ -36,21 +36,12 @@ const FileHeader = `/*
 // for convenience
 type Config = config.Config
 
-func DefaultConfig() Config {
-	return config.Config{
-		Enabled:               Bool(true),
-		OutputFile:            String("types.ts"),
-		UseTypeForObjects:     Bool(true),
-		AllowUnexportedFields: Bool(false),
-	}
-}
-
-func New(c config.Config) *Mirror {
-	if c.OutputFile == nil || *c.OutputFile == "" {
-		c.OutputFile = helper.String("types.ts")
+func New(c config.Config) (*Mirror, error) {
+	if c.TargetsOrDefault() == nil {
+		return nil, errors.New("no targets provided")
 	}
 
-	return &Mirror{config: c}
+	return &Mirror{config: c}, nil
 }
 
 // Fork takes the current mirror instance and returns a new instance with the current config.
@@ -77,13 +68,14 @@ func (m *Mirror) AddSource(s any) {
 	m.sources = append(m.sources, s)
 }
 
+// TODO: fix this
 func (m *Mirror) Commit(output string) error {
 	if !m.config.EnabledOrDefault() {
 		return nil
 	}
 
-	if m.config.OutputFileOrDefault() == "" {
-		return ErrNoOutputFile
+	if len(m.config.TargetsOrDefault()) == 0 {
+		return ErrNoTargetsDefined
 	}
 
 	if m.areSameBytesContent(output) {
