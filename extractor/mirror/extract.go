@@ -15,10 +15,17 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 		opts      = make(map[string]string)
 	)
 
-	if fieldMeta == nil {
+	if root == nil {
 		fieldMeta = new(meta.Meta)
 	} else {
 		fieldMeta = root
+	}
+
+	fieldMeta.OriginalName = helper.WithDefaultString(fieldMeta.OriginalName, field.Name)
+	fieldMeta.Name = helper.WithDefaultString(fieldMeta.Name, field.Name)
+
+	if fieldMeta.Name == "" {
+		fieldMeta.Name = fieldMeta.OriginalName
 	}
 
 	mirrorTag := strings.TrimSpace(field.Tag.Get("mirror"))
@@ -28,7 +35,9 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 		// Deprecated: The `ts` struct tag has been deprecated and will be removed in a future release
 		mirrorTag = strings.TrimSpace(field.Tag.Get("ts"))
 		if mirrorTag != "" {
-			fmt.Println("[WARN:MIRROR] The legacy `ts` struct tag has been deprecated and will be removed in a future release")
+			fmt.Println(
+				"[WARN:MIRROR] The legacy `ts` struct tag has been deprecated and will be removed in a future release",
+			)
 		}
 	}
 
