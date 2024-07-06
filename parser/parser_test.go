@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"go.trulyao.dev/mirror/config"
+	"go.trulyao.dev/mirror/extractor/meta"
 	"go.trulyao.dev/mirror/helper"
 )
 
@@ -37,7 +39,10 @@ func Test_ParseItem_Opts(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		got, err := ParseType(reflect.TypeOf(tt.Source), tt.Opt)
+		c := config.DefaultConfig()
+		p := New(&c)
+
+		got, err := p.Parse(reflect.TypeOf(tt.Source), tt.Opt)
 		if err != nil && !tt.WantErr {
 			t.Errorf("wanted NO error, got error `%s`", tt.Description)
 		}
@@ -119,7 +124,10 @@ func Test_ParseItem_Scalar(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		got, err := ParseType(reflect.TypeOf(tt.Source))
+		c := config.DefaultConfig()
+		p := New(&c)
+
+		got, err := p.Parse(reflect.TypeOf(tt.Source))
 		if err != nil && !tt.WantErr {
 			t.Errorf("wanted NO error, got error `%s`", tt.Description)
 		}
@@ -153,6 +161,7 @@ func Test_ParseItem_Map(t *testing.T) {
 				"StringString",
 				Scalar{"string", TypeString, false},
 				Scalar{"string", TypeString, false},
+				false,
 			},
 		},
 		{
@@ -162,6 +171,7 @@ func Test_ParseItem_Map(t *testing.T) {
 				"StringInt",
 				Scalar{"string", TypeString, false},
 				Scalar{"int", TypeInteger, false},
+				false,
 			},
 		},
 		{
@@ -171,6 +181,7 @@ func Test_ParseItem_Map(t *testing.T) {
 				"StringFloat",
 				Scalar{"string", TypeString, false},
 				Scalar{"float32", TypeFloat, false},
+				false,
 			},
 		},
 		{
@@ -180,6 +191,7 @@ func Test_ParseItem_Map(t *testing.T) {
 				"PtrStr",
 				Scalar{"string", TypeString, true},
 				Scalar{"string", TypeString, true},
+				false,
 			},
 		},
 		{
@@ -189,12 +201,183 @@ func Test_ParseItem_Map(t *testing.T) {
 				"ValuePtrStr",
 				Scalar{"string", TypeString, false},
 				Scalar{"string", TypeString, true},
+				false,
 			},
 		},
 	}
 
 	for _, tt := range tests {
-		got, err := ParseType(reflect.TypeOf(tt.Source))
+		c := config.DefaultConfig()
+		p := New(&c)
+
+		got, err := p.Parse(reflect.TypeOf(tt.Source))
+		if err != nil && !tt.WantErr {
+			t.Errorf("wanted NO error, got error `%s`", tt.Description)
+		}
+
+		if err == nil && tt.WantErr {
+			t.Errorf("wanted error, got no error in `%s`", tt.Description)
+		}
+
+		if !reflect.DeepEqual(got, tt.Expected) {
+			t.Errorf("wanted %v, got %v", tt.Expected, got)
+		}
+	}
+}
+
+func Test_ParseItem_Struct(t *testing.T) {
+	type Person struct {
+		FirstName string
+		LastName  string
+	}
+
+	type User struct {
+		Username string `json:"uname"`
+		Password string `json:"pass"`
+	}
+
+	type Account struct {
+		User      *User `mirror:"name:linked_user"`
+		CreatedAt int   `mirror:"name:created_at"`
+	}
+
+	tests := []Test{
+		{
+			Description: "parse Person struct",
+			Source:      Person{},
+			Expected: Struct{
+				"Person",
+				[]Field{
+					{
+						Name:     "FirstName",
+						BaseItem: Scalar{"string", TypeString, false},
+						Meta: meta.Meta{
+							OriginalName: "FirstName",
+							Name:         "FirstName",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+
+					{
+						Name:     "LastName",
+						BaseItem: Scalar{"string", TypeString, false},
+						Meta: meta.Meta{
+							OriginalName: "LastName",
+							Name:         "LastName",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+				},
+				false,
+			},
+		},
+
+		{
+			Description: "parse User struct with JSON meta",
+			Source:      User{},
+			Expected: Struct{
+				Name: "User",
+				Fields: []Field{
+					{
+						Name:     "uname",
+						BaseItem: Scalar{"string", TypeString, false},
+						Meta: meta.Meta{
+							OriginalName: "Username",
+							Name:         "uname",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+
+					{
+						Name:     "pass",
+						BaseItem: Scalar{"string", TypeString, false},
+						Meta: meta.Meta{
+							OriginalName: "Password",
+							Name:         "pass",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+				},
+				Nullable: false,
+			},
+		},
+
+		{
+			Description: "parse Account struct with mirror meta and pointer field",
+			Source:      Account{},
+			Expected: Struct{
+				Name: "Account",
+				Fields: []Field{
+					{
+						Name: "linked_user",
+						BaseItem: Struct{
+							Name: "User",
+							Fields: []Field{
+								{
+									Name:     "uname",
+									BaseItem: Scalar{"string", TypeString, false},
+									Meta: meta.Meta{
+										OriginalName: "Username",
+										Name:         "uname",
+										Type:         "",
+										Optional:     false,
+										Skip:         false,
+									},
+								},
+
+								{
+									Name:     "pass",
+									BaseItem: Scalar{"string", TypeString, false},
+									Meta: meta.Meta{
+										OriginalName: "Password",
+										Name:         "pass",
+										Type:         "",
+										Optional:     false,
+										Skip:         false,
+									},
+								},
+							},
+							Nullable: true,
+						},
+						Meta: meta.Meta{
+							OriginalName: "User",
+							Name:         "linked_user",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+
+					{
+						Name:     "created_at",
+						BaseItem: Scalar{"int", TypeInteger, false},
+						Meta: meta.Meta{
+							OriginalName: "CreatedAt",
+							Name:         "created_at",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+				},
+				Nullable: false,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		c := config.DefaultConfig()
+		p := New(&c)
+
+		got, err := p.Parse(reflect.TypeOf(tt.Source))
 		if err != nil && !tt.WantErr {
 			t.Errorf("wanted NO error, got error `%s`", tt.Description)
 		}

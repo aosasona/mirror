@@ -26,15 +26,16 @@ type Item interface {
 
 // Representing a field in a struct
 type Field struct {
-	Name    string
-	RawType ItemType
-	Meta    *meta.Meta
+	Name     string
+	BaseItem Item
+	Meta     meta.Meta
 }
 
 // Represents a struct type
 type Struct struct {
-	Name   string
-	Fields []Field
+	Name     string
+	Fields   []Field
+	Nullable bool
 }
 
 // Represents a scalar type like string, number, boolean, etc.
@@ -47,9 +48,10 @@ type Scalar struct {
 
 // Represents a map type
 type Map struct {
-	Name  string
-	Key   Item
-	Value Item
+	Name     string
+	Key      Item
+	Value    Item
+	Nullable bool
 }
 
 // SCALAR
