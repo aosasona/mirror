@@ -39,11 +39,20 @@ type Struct struct {
 }
 
 // Represents a scalar type like string, number, boolean, etc.
-// But it also includes arrays and slices
 type Scalar struct {
 	Name     string
 	Type     ItemType
 	Nullable bool
+}
+
+// Represents a list type; array or slice
+const EmptyLength = -1 // used to represent a slice
+
+type List struct {
+	Name     string
+	BaseItem Item
+	Nullable bool
+	Length   int // -1 if slice
 }
 
 // Represents a map type
@@ -81,8 +90,22 @@ func (p Map) ItemType() ItemType {
 	return TypeMap
 }
 
+// LIST
+func (l List) ItemName() string {
+	return l.Name
+}
+
+func (l List) ItemType() ItemType {
+	return TypeList
+}
+
+func (l List) IsArray() bool {
+	return l.Length != EmptyLength
+}
+
 var (
 	_ Item = Scalar{}
 	_ Item = Struct{}
 	_ Item = Map{}
+	_ Item = List{}
 )

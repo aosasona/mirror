@@ -391,3 +391,145 @@ func Test_ParseItem_Struct(t *testing.T) {
 		}
 	}
 }
+
+func Test_ParseItem_List(t *testing.T) {
+	type (
+		CustomType struct{ Name string }
+
+		Strings    []string
+		Ints       []int
+		Floats     []float32
+		Structs    []CustomType
+		StringPtrs []*string
+		ListList   [][]int
+		ListPtr    *[]int
+		ListPtrs   []*int
+
+		FixedStrings [3]string
+		FixedInts    [3]int
+	)
+
+	tests := []Test{
+		// Strings
+		{
+			Description: "parse []string",
+			Source:      Strings{},
+			Expected: List{
+				Name:     "Strings",
+				BaseItem: Scalar{"string", TypeString, false},
+				Nullable: false,
+				Length:   EmptyLength,
+			},
+		},
+
+		// Ints
+		{
+			Description: "parse []ints",
+			Source:      Ints{},
+			Expected: List{
+				Name:     "Ints",
+				BaseItem: Scalar{"int", TypeInteger, false},
+				Nullable: false,
+				Length:   EmptyLength,
+			},
+		},
+
+		// Floats
+		{
+			Description: "parse []floats",
+			Source:      Floats{},
+			Expected: List{
+				Name:     "Floats",
+				BaseItem: Scalar{"float32", TypeFloat, false},
+				Nullable: false,
+				Length:   EmptyLength,
+			},
+		},
+
+		// Structs
+		{
+			Description: "parse []structs",
+			Source:      Structs{},
+			Expected: List{
+				Name: "Structs",
+				BaseItem: Struct{
+					Name: "CustomType",
+					Fields: []Field{
+						{
+							Name:     "Name",
+							BaseItem: Scalar{"string", TypeString, false},
+							Meta: meta.Meta{
+								OriginalName: "Name",
+								Name:         "Name",
+								Type:         "",
+								Optional:     false,
+								Skip:         false,
+							},
+						},
+					},
+				},
+				Nullable: false,
+				Length:   EmptyLength,
+			},
+		},
+
+		// String pointers
+		{
+			Description: "parse []*string",
+			Source:      StringPtrs{},
+			Expected: List{
+				Name:     "StringPtrs",
+				BaseItem: Scalar{"string", TypeString, true},
+				Nullable: false,
+				Length:   EmptyLength,
+			},
+		},
+
+		// List of lists
+		{
+			Description: "parse [][]int",
+			Source:      ListList{},
+			Expected: List{
+				Name: "ListList",
+				BaseItem: List{
+					Name:     "ListList",
+					BaseItem: Scalar{"int", TypeInteger, false},
+					Length:   EmptyLength,
+					Nullable: false,
+				},
+				Nullable: false,
+				Length:   EmptyLength,
+			},
+		},
+
+		// List pointer
+		{
+			Description: "parse *[]int",
+			Source:      *new(ListPtr), // new(ListPtr) returns a pointer to a nil slice, that is intentionally unhandled by the parser and will return an error for now
+			Expected: List{
+				Name:     "",
+				BaseItem: Scalar{"int", TypeInteger, false},
+				Nullable: true,
+				Length:   EmptyLength,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		c := config.DefaultConfig()
+		p := New(&c)
+
+		got, err := p.Parse(reflect.TypeOf(tt.Source))
+		if err != nil && !tt.WantErr {
+			t.Errorf("wanted NO error, got error `%s`: %s", tt.Description, err)
+		}
+
+		if err == nil && tt.WantErr {
+			t.Errorf("wanted error, got no error in `%s`", tt.Description)
+		}
+
+		if !reflect.DeepEqual(got, tt.Expected) {
+			t.Errorf("wanted %v, got %v", tt.Expected, got)
+		}
+	}
+}

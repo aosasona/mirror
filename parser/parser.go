@@ -133,6 +133,19 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 
 		return Struct{Name: source.Name(), Fields: fields, Nullable: nullable}, nil
 
+	case reflect.Array, reflect.Slice:
+		item, err := p.Parse(source.Elem())
+		if err != nil {
+			return nil, err
+		}
+
+		length := EmptyLength
+		if source.Kind() == reflect.Array {
+			length = source.Len()
+		}
+
+		return List{Name: source.Name(), BaseItem: item, Nullable: nullable, Length: length}, nil
+
 	case reflect.Pointer:
 		baseType := source.Elem().Kind()
 
@@ -145,11 +158,18 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 
 		// Whatever we have left after filtering out scalar values is one of: array, slice or struct
 
-		// If it is a struct, we need to expand it
-		if source.Elem().Kind() == reflect.Struct {
+		switch source.Elem().Kind() {
+		case reflect.Struct:
 			return p.Parse(source.Elem(), Options{
 				OverrideNullable: helper.Bool(true),
 			})
+		case reflect.Array, reflect.Slice:
+			return p.Parse(source.Elem(), Options{
+				OverrideNullable: helper.Bool(true),
+			})
+
+		default:
+			return nil, fmt.Errorf("not implemented for %s", source.Name())
 		}
 
 		// TODO: handle other pointer types (array, slices, uintptr)
