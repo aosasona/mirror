@@ -123,23 +123,7 @@ func Test_ParseItem_Scalar(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		c := config.DefaultConfig()
-		p := New(&c)
-
-		got, err := p.Parse(reflect.TypeOf(tt.Source))
-		if err != nil && !tt.WantErr {
-			t.Errorf("wanted NO error, got error `%s`", tt.Description)
-		}
-
-		if err == nil && tt.WantErr {
-			t.Errorf("wanted error, got no error in `%s`", tt.Description)
-		}
-
-		if !reflect.DeepEqual(got, tt.Expected) {
-			t.Errorf("wanted %v, got %v", tt.Expected, got)
-		}
-	}
+	runTests(t, tests)
 }
 
 func Test_ParseItem_Map(t *testing.T) {
@@ -206,23 +190,7 @@ func Test_ParseItem_Map(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		c := config.DefaultConfig()
-		p := New(&c)
-
-		got, err := p.Parse(reflect.TypeOf(tt.Source))
-		if err != nil && !tt.WantErr {
-			t.Errorf("wanted NO error, got error `%s`", tt.Description)
-		}
-
-		if err == nil && tt.WantErr {
-			t.Errorf("wanted error, got no error in `%s`", tt.Description)
-		}
-
-		if !reflect.DeepEqual(got, tt.Expected) {
-			t.Errorf("wanted %v, got %v", tt.Expected, got)
-		}
-	}
+	runTests(t, tests)
 }
 
 func Test_ParseItem_Struct(t *testing.T) {
@@ -373,23 +341,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		c := config.DefaultConfig()
-		p := New(&c)
-
-		got, err := p.Parse(reflect.TypeOf(tt.Source))
-		if err != nil && !tt.WantErr {
-			t.Errorf("wanted NO error, got error `%s`", tt.Description)
-		}
-
-		if err == nil && tt.WantErr {
-			t.Errorf("wanted error, got no error in `%s`", tt.Description)
-		}
-
-		if !reflect.DeepEqual(got, tt.Expected) {
-			t.Errorf("wanted %v, got %v", tt.Expected, got)
-		}
-	}
+	runTests(t, tests)
 }
 
 func Test_ParseItem_List(t *testing.T) {
@@ -403,10 +355,11 @@ func Test_ParseItem_List(t *testing.T) {
 		StringPtrs []*string
 		ListList   [][]int
 		ListPtr    *[]int
-		ListPtrs   []*int
+		ListPtrs   []*[]int
 
 		FixedStrings [3]string
-		FixedInts    [3]int
+		FixedStructs [8]CustomType
+		FixedIntPtrs [6]*int
 	)
 
 	tests := []Test{
@@ -492,7 +445,7 @@ func Test_ParseItem_List(t *testing.T) {
 			Expected: List{
 				Name: "ListList",
 				BaseItem: List{
-					Name:     "ListList",
+					Name:     "", // The inner list has no name
 					BaseItem: Scalar{"int", TypeInteger, false},
 					Length:   EmptyLength,
 					Nullable: false,
@@ -513,23 +466,188 @@ func Test_ParseItem_List(t *testing.T) {
 				Length:   EmptyLength,
 			},
 		},
+
+		// List of list pointers
+		{
+			Description: "parse []*[]int",
+			Source:      ListPtrs{},
+			Expected: List{
+				Name:   "ListPtrs",
+				Length: EmptyLength,
+				BaseItem: List{
+					Name:     "",
+					BaseItem: Scalar{"int", TypeInteger, false},
+					Length:   EmptyLength,
+					Nullable: true,
+				},
+			},
+		},
+
+		// Fixed strings
+		{
+			Description: "parse [3]string",
+			Source:      FixedStrings{},
+			Expected: List{
+				Name:     "FixedStrings",
+				BaseItem: Scalar{"string", TypeString, false},
+				Length:   3,
+				Nullable: false,
+			},
+		},
+
+		// Fixed Structs
+		{
+			Description: "parse [8]structs",
+			Source:      FixedStructs{},
+			Expected: List{
+				Name: "FixedStructs",
+				BaseItem: Struct{
+					Name: "CustomType",
+					Fields: []Field{
+						{
+							Name:     "Name",
+							BaseItem: Scalar{"string", TypeString, false},
+							Meta: meta.Meta{
+								OriginalName: "Name",
+								Name:         "Name",
+								Type:         "",
+								Optional:     false,
+								Skip:         false,
+							},
+						},
+					},
+				},
+				Nullable: false,
+				Length:   8,
+			},
+		},
+
+		// Fixed IntPtrs
+		{
+			Description: "parse [6]*int",
+			Source:      FixedIntPtrs{},
+			Expected: List{
+				Name:     "FixedIntPtrs",
+				BaseItem: Scalar{"int", TypeInteger, true},
+				Length:   6,
+				Nullable: false,
+			},
+		},
 	}
 
+	runTests(t, tests)
+}
+
+func Test_ParseItem_Function(t *testing.T) {
+	type (
+		// Function types
+		Func1          func() error
+		Add            func(int, int) int
+		ReturnMultiple func(string, *string) (int, error)
+
+		Foo       struct{ Name string }
+		InsertFoo func(Foo) error
+	)
+
+	tests := []Test{
+		{
+			Description: "parse func() error",
+			Source:      Func1(nil),
+			Expected: Function{
+				Name:     "Func1",
+				Params:   []Item{},
+				Returns:  []Item{Scalar{"error", TypeString, false}},
+				Nullable: false,
+			},
+		},
+
+		// Add
+		{
+			Description: "parse func(int, int) int",
+			Source:      Add(nil),
+			Expected: Function{
+				Name: "Add",
+				Params: []Item{
+					Scalar{"int", TypeInteger, false},
+					Scalar{"int", TypeInteger, false},
+				},
+				Returns:  []Item{Scalar{"int", TypeInteger, false}},
+				Nullable: false,
+			},
+		},
+
+		// ReturnMultiple
+		{
+			Description: "parse func(string, string) (int, error)",
+			Source:      ReturnMultiple(nil),
+			Expected: Function{
+				Name: "ReturnMultiple",
+				Params: []Item{
+					Scalar{"string", TypeString, false},
+					Scalar{"string", TypeString, true},
+				},
+				Returns: []Item{
+					Scalar{"int", TypeInteger, false},
+					Scalar{"error", TypeString, false},
+				},
+				Nullable: false,
+			},
+		},
+
+		// InsertFoo
+		{
+			Description: "parse func(Foo) error",
+			Source:      InsertFoo(nil),
+			Expected: Function{
+				Name: "InsertFoo",
+				Params: []Item{
+					Struct{
+						Name: "Foo",
+						Fields: []Field{
+							{
+								Name:     "Name",
+								BaseItem: Scalar{"string", TypeString, false},
+								Meta: meta.Meta{
+									OriginalName: "Name",
+									Name:         "Name",
+									Type:         "",
+									Optional:     false,
+									Skip:         false,
+								},
+							},
+						},
+						Nullable: false,
+					},
+				},
+				Returns:  []Item{Scalar{"error", TypeString, false}},
+				Nullable: false,
+			},
+		},
+	}
+
+	runTests(t, tests)
+}
+
+func runTests(t *testing.T, tests []Test) {
 	for _, tt := range tests {
-		c := config.DefaultConfig()
-		p := New(&c)
+		runTest(t, tt)
+	}
+}
 
-		got, err := p.Parse(reflect.TypeOf(tt.Source))
-		if err != nil && !tt.WantErr {
-			t.Errorf("wanted NO error, got error `%s`: %s", tt.Description, err)
-		}
+func runTest(t *testing.T, tt Test) {
+	c := config.DefaultConfig()
+	p := New(&c)
 
-		if err == nil && tt.WantErr {
-			t.Errorf("wanted error, got no error in `%s`", tt.Description)
-		}
+	got, err := p.Parse(reflect.TypeOf(tt.Source))
+	if err != nil && !tt.WantErr {
+		t.Errorf("[%s] wanted NO error, got error `%s`", tt.Description, err.Error())
+	}
 
-		if !reflect.DeepEqual(got, tt.Expected) {
-			t.Errorf("wanted %v, got %v", tt.Expected, got)
-		}
+	if err == nil && tt.WantErr {
+		t.Errorf("[%s] wanted error, got no error", tt.Description)
+	}
+
+	if !reflect.DeepEqual(got, tt.Expected) {
+		t.Errorf("[%s] wanted %v, got %v", tt.Description, tt.Expected, got)
 	}
 }

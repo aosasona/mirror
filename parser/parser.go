@@ -3,15 +3,12 @@ package parser
 import (
 	"fmt"
 	"reflect"
-	"regexp"
 
 	"go.trulyao.dev/mirror/config"
 	"go.trulyao.dev/mirror/extractor"
 	"go.trulyao.dev/mirror/extractor/meta"
 	"go.trulyao.dev/mirror/helper"
 )
-
-var ScalarRegex = regexp.MustCompile("^(int(8|16|32|64)|float(32|64)|string|bool)$")
 
 type Options struct {
 	OverrideNullable *bool
@@ -146,33 +143,51 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 
 		return List{Name: source.Name(), BaseItem: item, Nullable: nullable, Length: length}, nil
 
-	case reflect.Pointer:
-		baseType := source.Elem().Kind()
+	case reflect.Func:
+		params := make([]Item, 0)
+		returns := make([]Item, 0)
 
-		// We need to check it is a pointer a scalar type, so that we can abort and return a normal item marked as nullable
-		if matched := ScalarRegex.Match([]byte(baseType.String())); matched {
-			return p.Parse(source.Elem(), Options{
-				OverrideNullable: helper.Bool(true),
-			})
+		for i := 0; i < source.NumIn(); i++ {
+			param, err := p.Parse(source.In(i))
+			if err != nil {
+				return nil, err
+			}
+
+			params = append(params, param)
 		}
 
-		// Whatever we have left after filtering out scalar values is one of: array, slice or struct
+		for i := 0; i < source.NumOut(); i++ {
+			ret, err := p.Parse(source.Out(i))
+			if err != nil {
+				return nil, err
+			}
 
-		switch source.Elem().Kind() {
-		case reflect.Struct:
-			return p.Parse(source.Elem(), Options{
-				OverrideNullable: helper.Bool(true),
-			})
-		case reflect.Array, reflect.Slice:
-			return p.Parse(source.Elem(), Options{
-				OverrideNullable: helper.Bool(true),
-			})
+			returns = append(returns, ret)
+		}
 
+		return Function{
+			Name:     source.Name(),
+			Params:   params,
+			Returns:  returns,
+			Nullable: nullable,
+		}, nil
+
+	case reflect.Pointer:
+		return p.Parse(source.Elem(), Options{
+			OverrideNullable: helper.Bool(true),
+		})
+
+	case reflect.Interface:
+		switch source.Name() {
+		case "interface{}", "any":
+			return Scalar{source.Name(), TypeAny, nullable}, nil
+		case "error":
+			return Scalar{source.Name(), TypeString, nullable}, nil
+		case "time.Time":
+			return Scalar{source.Name(), TypeDateTime, nullable}, nil
 		default:
 			return nil, fmt.Errorf("not implemented for %s", source.Name())
 		}
-
-		// TODO: handle other pointer types (array, slices, uintptr)
 	}
 
 	return nil, fmt.Errorf("not implemented for %s", source.Name())

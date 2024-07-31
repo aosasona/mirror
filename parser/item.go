@@ -7,14 +7,17 @@ import (
 type ItemType string
 
 const (
-	TypeInteger ItemType = "int"
-	TypeFloat   ItemType = "float"
-	TypeString  ItemType = "string"
-	TypeBoolean ItemType = "bool"
-	TypeStruct  ItemType = "struct"
-	TypeList    ItemType = "list"
-	TypeArray   ItemType = "array"
-	TypeMap     ItemType = "map"
+	TypeInteger  ItemType = "int"
+	TypeFloat    ItemType = "float"
+	TypeString   ItemType = "string"
+	TypeBoolean  ItemType = "bool"
+	TypeStruct   ItemType = "struct"
+	TypeList     ItemType = "list"
+	TypeArray    ItemType = "array"
+	TypeMap      ItemType = "map"
+	TypeFunction ItemType = "function"
+	TypeAny      ItemType = "any"
+	TypeDateTime ItemType = "datetime"
 )
 
 // General interface to be adopted by anything that can or should be represented as an item
@@ -63,6 +66,14 @@ type Map struct {
 	Nullable bool
 }
 
+// Represents a function
+type Function struct {
+	Name     string
+	Params   []Item
+	Returns  []Item
+	Nullable bool
+}
+
 // SCALAR
 func (s Scalar) ItemName() string {
 	return s.Name
@@ -101,6 +112,15 @@ func (l List) ItemType() ItemType {
 
 func (l List) IsArray() bool {
 	return l.Length != EmptyLength
+}
+
+// FUNCTION
+func (f Function) ItemName() string {
+	return f.Name
+}
+
+func (f Function) ItemType() ItemType {
+	return TypeFunction
 }
 
 var (
