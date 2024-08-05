@@ -1,7 +1,7 @@
 package typescript
 
-type TypescriptGenerator struct{}
+type Generator struct{}
 
-func NewTypescriptGenerator() *TypescriptGenerator {
-	return &TypescriptGenerator{}
+func NewGenerator() *Generator {
+	return &Generator{}
 }
