@@ -15,15 +15,48 @@ type Options struct {
 }
 
 type Parser struct {
-	config *config.Config
+	config  *config.Config
+	sources []reflect.Type
 }
 
 func New(config *config.Config) *Parser {
 	return &Parser{config: config}
 }
 
+func (p *Parser) AddSource(source reflect.Type) error {
+	if source == nil {
+		return fmt.Errorf("source cannot be nil")
+	}
+
+	p.sources = append(p.sources, source)
+	return nil
+}
+
+func (p *Parser) AddSources(sources ...reflect.Type) error {
+	for _, source := range sources {
+		if err := p.AddSource(source); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (p *Parser) Next() (Item, error) {
+	if len(p.sources) == 0 {
+		return nil, fmt.Errorf("no sources to parse")
+	}
+
+	source := p.sources[0]
+	p.sources = p.sources[1:]
+
+	return p.Parse(source)
+}
+
 // Converts a type to an `Item` type that can be passed to generators
 // Non-scalar types like classes (structs) and slices are expanded to include their root type
+//
+// # This is used internally to convert a `reflect.Type` to a `parser.Item` type but is left exposed for advanced use cases where the user wants to convert a type to an `Item` type
 //
 // ## Example
 //
@@ -92,85 +125,16 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 		return Scalar{source.Name(), TypeBoolean, nullable}, nil
 
 	case reflect.Map:
-		keyItem, err := p.Parse(source.Key())
-		if err != nil {
-			return Map{}, err
-		}
-
-		valueItem, err := p.Parse(source.Elem())
-		if err != nil {
-			return Map{}, err
-		}
-
-		return Map{source.Name(), keyItem, valueItem, nullable}, nil
+		return p.parseMap(source, nullable)
 
 	case reflect.Struct:
-		fields := make([]Field, 0)
-
-		for i := 0; i < source.NumField(); i++ {
-			field := source.Field(i)
-
-			// Skip unexported fields
-			if field.PkgPath != "" {
-				continue
-			}
-
-			meta, err := p.ParseField(field)
-			if err != nil {
-				return nil, err
-			}
-
-			item, err := p.Parse(field.Type)
-			if err != nil {
-				return nil, err
-			}
-
-			fields = append(fields, Field{Name: meta.Name, BaseItem: item, Meta: meta})
-		}
-
-		return Struct{Name: source.Name(), Fields: fields, Nullable: nullable}, nil
+		return p.parseStruct(source, nullable)
 
 	case reflect.Array, reflect.Slice:
-		item, err := p.Parse(source.Elem())
-		if err != nil {
-			return nil, err
-		}
-
-		length := EmptyLength
-		if source.Kind() == reflect.Array {
-			length = source.Len()
-		}
-
-		return List{Name: source.Name(), BaseItem: item, Nullable: nullable, Length: length}, nil
+		return p.parseList(source, nullable)
 
 	case reflect.Func:
-		params := make([]Item, 0)
-		returns := make([]Item, 0)
-
-		for i := 0; i < source.NumIn(); i++ {
-			param, err := p.Parse(source.In(i))
-			if err != nil {
-				return nil, err
-			}
-
-			params = append(params, param)
-		}
-
-		for i := 0; i < source.NumOut(); i++ {
-			ret, err := p.Parse(source.Out(i))
-			if err != nil {
-				return nil, err
-			}
-
-			returns = append(returns, ret)
-		}
-
-		return Function{
-			Name:     source.Name(),
-			Params:   params,
-			Returns:  returns,
-			Nullable: nullable,
-		}, nil
+		return p.parseFunc(source, nullable)
 
 	case reflect.Pointer:
 		return p.Parse(source.Elem(), Options{
@@ -178,22 +142,13 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 		})
 
 	case reflect.Interface:
-		switch source.Name() {
-		case "interface{}", "any":
-			return Scalar{source.Name(), TypeAny, nullable}, nil
-		case "error":
-			return Scalar{source.Name(), TypeString, nullable}, nil
-		case "time.Time":
-			return Scalar{source.Name(), TypeDateTime, nullable}, nil
-		default:
-			return nil, fmt.Errorf("not implemented for %s", source.Name())
-		}
+		return p.parseInterface(source, nullable)
 	}
 
 	return nil, fmt.Errorf("not implemented for %s", source.Name())
 }
 
-func (p *Parser) ParseField(field reflect.StructField) (meta.Meta, error) {
+func (p *Parser) parseField(field reflect.StructField) (meta.Meta, error) {
 	rootMeta := meta.Meta{}
 
 	rootMeta.OriginalName = helper.WithDefaultString(rootMeta.OriginalName, field.Name)
@@ -212,4 +167,102 @@ func (p *Parser) ParseField(field reflect.StructField) (meta.Meta, error) {
 	}
 
 	return *mirrorMeta, nil
+}
+
+func (p *Parser) parseStruct(source reflect.Type, nullable bool) (Struct, error) {
+	fields := make([]Field, 0)
+
+	for i := 0; i < source.NumField(); i++ {
+		field := source.Field(i)
+
+		// Skip unexported fields
+		if field.PkgPath != "" {
+			continue
+		}
+
+		meta, err := p.parseField(field)
+		if err != nil {
+			return Struct{}, err
+		}
+
+		item, err := p.Parse(field.Type)
+		if err != nil {
+			return Struct{}, err
+		}
+
+		fields = append(fields, Field{Name: meta.Name, BaseItem: item, Meta: meta})
+	}
+
+	return Struct{Name: source.Name(), Fields: fields, Nullable: nullable}, nil
+}
+
+func (p *Parser) parseMap(source reflect.Type, nullable bool) (Map, error) {
+	keyItem, err := p.Parse(source.Key())
+	if err != nil {
+		return Map{}, err
+	}
+
+	valueItem, err := p.Parse(source.Elem())
+	if err != nil {
+		return Map{}, err
+	}
+
+	return Map{source.Name(), keyItem, valueItem, nullable}, nil
+}
+
+func (p *Parser) parseList(source reflect.Type, nullable bool) (List, error) {
+	item, err := p.Parse(source.Elem())
+	if err != nil {
+		return List{}, err
+	}
+
+	length := EmptyLength
+	if source.Kind() == reflect.Array {
+		length = source.Len()
+	}
+
+	return List{Name: source.Name(), BaseItem: item, Nullable: nullable, Length: length}, nil
+}
+
+func (p *Parser) parseFunc(source reflect.Type, nullable bool) (Function, error) {
+	params := make([]Item, 0)
+	returns := make([]Item, 0)
+
+	for i := 0; i < source.NumIn(); i++ {
+		param, err := p.Parse(source.In(i))
+		if err != nil {
+			return Function{}, err
+		}
+
+		params = append(params, param)
+	}
+
+	for i := 0; i < source.NumOut(); i++ {
+		ret, err := p.Parse(source.Out(i))
+		if err != nil {
+			return Function{}, err
+		}
+
+		returns = append(returns, ret)
+	}
+
+	return Function{
+		Name:     source.Name(),
+		Params:   params,
+		Returns:  returns,
+		Nullable: nullable,
+	}, nil
+}
+
+func (p *Parser) parseInterface(source reflect.Type, nullable bool) (Item, error) {
+	switch source.Name() {
+	case "interface{}", "any":
+		return Scalar{source.Name(), TypeAny, nullable}, nil
+	case "error":
+		return Scalar{source.Name(), TypeString, nullable}, nil
+	case "time.Time":
+		return Scalar{source.Name(), TypeDateTime, nullable}, nil
+	default:
+		return nil, fmt.Errorf("not implemented for %s", source.Name())
+	}
 }
