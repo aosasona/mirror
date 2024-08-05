@@ -14,6 +14,14 @@ type Options struct {
 	OverrideNullable *bool
 }
 
+type ParserInterface interface {
+	AddSource(reflect.Type) error
+	AddSources(...reflect.Type) error
+	Next() (Item, error)
+
+	Done() bool
+}
+
 type Parser struct {
 	config  *config.Config
 	sources []reflect.Type
@@ -21,6 +29,10 @@ type Parser struct {
 
 func New(config *config.Config) *Parser {
 	return &Parser{config: config}
+}
+
+func (p *Parser) Done() bool {
+	return len(p.sources) == 0
 }
 
 func (p *Parser) AddSource(source reflect.Type) error {
