@@ -128,4 +128,5 @@ var (
 	_ Item = Struct{}
 	_ Item = Map{}
 	_ Item = List{}
+	_ Item = Function{}
 )
