@@ -1,7 +1,8 @@
 package generator
 
 import (
-	"go.trulyao.dev/mirror/generator/typescript"
+	"errors"
+
 	"go.trulyao.dev/mirror/parser"
 )
 
@@ -20,6 +21,4 @@ type GeneratorInterface interface {
 	GenerateAll() ([]string, error)
 }
 
-func NewTypescriptGenerator() *typescript.Generator {
-	return typescript.NewGenerator()
-}
+var ErrNoParser = errors.New("no parser provided")

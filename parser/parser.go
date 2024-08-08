@@ -18,8 +18,8 @@ type ParserInterface interface {
 	AddSource(reflect.Type) error
 	AddSources(...reflect.Type) error
 	ParseN(int) (Item, error)
-	Next() (Item, error)
 
+	Next() (Item, error)
 	Done() bool
 }
 

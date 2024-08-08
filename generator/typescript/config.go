@@ -72,4 +72,8 @@ func (c *Config) AddCustomType(name, value string) {
 	c.customTypes[name] = value
 }
 
-var _ config.Target = &Config{}
+func (c *Config) Generator() *Generator {
+	return NewGenerator(*c)
+}
+
+var _ config.TargetInterface = &Config{}

@@ -43,5 +43,9 @@ func (m *Mirror) GenerateAll() error {
 		return ErrNoTargetsDefined
 	}
 
+	// for _, target := range m.config.Targets {
+	//
+	// }
+
 	return nil
 }

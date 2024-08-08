@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kyoh86/richgo/config"
 	"go.trulyao.dev/mirror"
 	"go.trulyao.dev/mirror/config"
 	"go.trulyao.dev/mirror/generator/typescript"
