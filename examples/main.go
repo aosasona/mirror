@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kyoh86/richgo/config"
 	"go.trulyao.dev/mirror"
+	"go.trulyao.dev/mirror/config"
+	"go.trulyao.dev/mirror/generator/typescript"
 )
 
 type Language string
@@ -37,20 +40,19 @@ type Person struct {
 
 func main() {
 	start := time.Now()
-	gt := mirror.New(mirror.Config{
-		Enabled:           mirror.Bool(true),
-		OutputFile:        mirror.String("./examples/example.ts"),
-		UseTypeForObjects: mirror.Bool(true),
-		ExpandObjectTypes: mirror.Bool(true),
+	gt := mirror.New(config.Config{
+		Enabled: true,
 	})
 
-	gt.Register(*new(Language), Tags{}, Person{})
+	gt.AddSources(*new(Language), Tags{}, Person{})
+
+	t := typescript.New("example.ts", ".")
 
 	defer func(count int) {
 		fmt.Printf("Generated %d types in %s\n", count, time.Since(start))
 	}(gt.Count())
 
-	err := gt.Execute(true)
+	err := gt.GenerateAll()
 	if err != nil {
 		fmt.Println(err)
 		return

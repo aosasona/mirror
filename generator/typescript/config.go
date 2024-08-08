@@ -12,6 +12,12 @@ const fileHeader = `/**
 `
 
 type Config struct {
+	// FileName is the name of the generated file
+	FileName string
+
+	// OutputPath is the path to write the generated file to
+	OutputPath string
+
 	// PreferInterface will generate object types as interfaces instead of types
 	PreferInterface bool
 
@@ -30,32 +36,40 @@ type Config struct {
 	// IndentationCount is the number of spaces or tabs to use for indentation (defaults to 4)
 	IndentationCount int
 
-	customTypes      map[string]string
-	customFileHeader string
+	customTypes map[string]string
 }
 
-func (c *Config) Name() string {
-	return "typescript"
+func New(filename, path string) *Config {
+	return &Config{
+		FileName:         filename,
+		OutputPath:       path,
+		customTypes:      make(map[string]string),
+		IndentationCount: 4,
+	}
 }
 
-func (c *Config) Extension() string {
-	return "ts"
-}
+func (c *Config) Name() string { return c.FileName }
 
-func (c *Config) SetHeader(header string) {
-	c.customFileHeader = header
-}
+func (c *Config) Path() string { return c.OutputPath }
+
+func (c *Config) Language() string { return "typescript" }
+
+func (c *Config) Extension() string { return "ts" }
 
 func (c *Config) Header() string {
-	if c.customFileHeader != "" {
-		return c.customFileHeader
-	}
-
 	return fileHeader
+}
+
+func (c *Config) SetFileName(name string) {
+	c.FileName = name
+}
+
+func (c *Config) SetOutputPath(path string) {
+	c.OutputPath = path
 }
 
 func (c *Config) AddCustomType(name, value string) {
 	c.customTypes[name] = value
 }
 
-var _ config.LanguageConfigInterface = &Config{}
+var _ config.Target = &Config{}
