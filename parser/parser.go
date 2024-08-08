@@ -17,6 +17,7 @@ type Options struct {
 type ParserInterface interface {
 	AddSource(reflect.Type) error
 	AddSources(...reflect.Type) error
+	ParseN(int) (Item, error)
 	Next() (Item, error)
 
 	Done() bool
@@ -61,6 +62,21 @@ func (p *Parser) Next() (Item, error) {
 
 	source := p.sources[0]
 	p.sources = p.sources[1:]
+
+	return p.Parse(source)
+}
+
+// Parse the nth source in the list of sources (0-indexed)
+func (p *Parser) ParseN(n int) (Item, error) {
+	if n < 0 {
+		return nil, fmt.Errorf("n must be a positive integer")
+	}
+
+	if len(p.sources) < n {
+		return nil, fmt.Errorf("not enough sources to parse")
+	}
+
+	source := p.sources[n]
 
 	return p.Parse(source)
 }
@@ -278,3 +294,5 @@ func (p *Parser) parseInterface(source reflect.Type, nullable bool) (Item, error
 		return nil, fmt.Errorf("not implemented for %s", source.Name())
 	}
 }
+
+var _ ParserInterface = &Parser{}
