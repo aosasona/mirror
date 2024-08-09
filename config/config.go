@@ -1,5 +1,7 @@
 package config
 
+import "go.trulyao.dev/mirror/types"
+
 type Indentation int
 
 const (
@@ -7,18 +9,6 @@ const (
 	Space
 	Tab
 )
-
-// A general language interface to make it harder to pass in a wrong language or extend the built-in languages and backends in the future
-// There will clearly be neglibile performance impact but it should not matter much here
-type TargetInterface interface {
-	Name() string
-	Path() string
-	Language() string
-	Extension() string
-	Header() string
-	AddCustomType(string, string)
-	// Generator() generator.GeneratorInterface
-}
 
 // Debug is a global variable that can be used to enable or disable debug mode
 var Debug = false
@@ -33,17 +23,17 @@ type Config struct {
 	Enabled bool
 
 	// Targets are the languages and files to generate types for, at least ONE target MUST be defined
-	Targets []TargetInterface
+	Targets []types.TargetInterface
 }
 
 func New() Config {
 	return Config{}
 }
 
-func (c *Config) AddTarget(t TargetInterface) {
+func (c *Config) AddTarget(t types.TargetInterface) {
 	c.Targets = append(c.Targets, t)
 }
 
-func (c *Config) AddTargets(t ...TargetInterface) {
+func (c *Config) AddTargets(t ...types.TargetInterface) {
 	c.Targets = append(c.Targets, t...)
 }

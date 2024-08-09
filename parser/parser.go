@@ -4,32 +4,21 @@ import (
 	"fmt"
 	"reflect"
 
-	"go.trulyao.dev/mirror/config"
 	"go.trulyao.dev/mirror/extractor"
 	"go.trulyao.dev/mirror/extractor/meta"
 	"go.trulyao.dev/mirror/helper"
 )
 
 type Options struct {
-	OverrideNullable *bool
-}
-
-type ParserInterface interface {
-	AddSource(reflect.Type) error
-	AddSources(...reflect.Type) error
-	ParseN(int) (Item, error)
-
-	Next() (Item, error)
-	Done() bool
+	OverrideNullable bool
 }
 
 type Parser struct {
-	config  *config.Config
 	sources []reflect.Type
 }
 
-func New(config *config.Config) *Parser {
-	return &Parser{config: config}
+func New() *Parser {
+	return &Parser{}
 }
 
 func (p *Parser) Done() bool {
@@ -124,8 +113,8 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 	}
 
 	nullable := false
-	if opt.OverrideNullable != nil {
-		nullable = *opt.OverrideNullable
+	if opt.OverrideNullable != nullable {
+		nullable = opt.OverrideNullable
 	}
 
 	switch source.Kind() {
@@ -166,7 +155,7 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 
 	case reflect.Pointer:
 		return p.Parse(source.Elem(), Options{
-			OverrideNullable: helper.Bool(true),
+			OverrideNullable: true,
 		})
 
 	case reflect.Interface:
@@ -294,5 +283,3 @@ func (p *Parser) parseInterface(source reflect.Type, nullable bool) (Item, error
 		return nil, fmt.Errorf("not implemented for %s", source.Name())
 	}
 }
-
-var _ ParserInterface = &Parser{}

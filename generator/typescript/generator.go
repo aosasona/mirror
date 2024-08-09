@@ -2,16 +2,16 @@ package typescript
 
 import (
 	"go.trulyao.dev/mirror/generator"
-	"go.trulyao.dev/mirror/parser"
+	"go.trulyao.dev/mirror/types"
 )
 
 type Generator struct {
 	config Config
-	parser parser.ParserInterface
+	parser types.ParserInterface
 }
 
 // SetParser implements generator.GeneratorInterface.
-func (g *Generator) SetParser(parser parser.ParserInterface) error {
+func (g *Generator) SetParser(parser types.ParserInterface) error {
 	if parser == nil {
 		return generator.ErrNoParser
 	}
@@ -38,5 +38,3 @@ func (g *Generator) SetHeaderText(string) {
 func NewGenerator(config Config) *Generator {
 	return &Generator{config: config}
 }
-
-var _ generator.GeneratorInterface = &Generator{}

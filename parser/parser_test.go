@@ -4,9 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"go.trulyao.dev/mirror/config"
 	"go.trulyao.dev/mirror/extractor/meta"
-	"go.trulyao.dev/mirror/helper"
 )
 
 type Test struct {
@@ -32,15 +30,14 @@ func Test_ParseItem_Opts(t *testing.T) {
 	tests := []OptTest{
 		{
 			Description: "parse integer with nullable overridden to true",
-			Opt:         Options{OverrideNullable: helper.Bool(true)},
+			Opt:         Options{OverrideNullable: true},
 			Source:      *new(Foo),
 			Expected:    Scalar{"Foo", TypeInteger, true},
 		},
 	}
 
 	for _, tt := range tests {
-		c := config.DefaultConfig()
-		p := New(&c)
+		p := New()
 
 		got, err := p.Parse(reflect.TypeOf(tt.Source), tt.Opt)
 		if err != nil && !tt.WantErr {
@@ -635,8 +632,7 @@ func runTests(t *testing.T, tests []Test) {
 }
 
 func runTest(t *testing.T, tt Test) {
-	c := config.DefaultConfig()
-	p := New(&c)
+	p := New()
 
 	got, err := p.Parse(reflect.TypeOf(tt.Source))
 	if err != nil && !tt.WantErr {
