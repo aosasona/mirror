@@ -214,7 +214,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 				"Person",
 				[]Field{
 					{
-						Name:     "FirstName",
+						ItemName: "FirstName",
 						BaseItem: Scalar{"string", TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "FirstName",
@@ -226,7 +226,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 					},
 
 					{
-						Name:     "LastName",
+						ItemName: "LastName",
 						BaseItem: Scalar{"string", TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "LastName",
@@ -245,10 +245,10 @@ func Test_ParseItem_Struct(t *testing.T) {
 			Description: "parse User struct with JSON meta",
 			Source:      User{},
 			Expected: Struct{
-				Name: "User",
+				ItemName: "User",
 				Fields: []Field{
 					{
-						Name:     "uname",
+						ItemName: "uname",
 						BaseItem: Scalar{"string", TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "Username",
@@ -260,7 +260,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 					},
 
 					{
-						Name:     "pass",
+						ItemName: "pass",
 						BaseItem: Scalar{"string", TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "Password",
@@ -279,15 +279,15 @@ func Test_ParseItem_Struct(t *testing.T) {
 			Description: "parse Account struct with mirror meta and pointer field",
 			Source:      Account{},
 			Expected: Struct{
-				Name: "Account",
+				ItemName: "Account",
 				Fields: []Field{
 					{
-						Name: "linked_user",
+						ItemName: "linked_user",
 						BaseItem: Struct{
-							Name: "User",
+							ItemName: "User",
 							Fields: []Field{
 								{
-									Name:     "uname",
+									ItemName: "uname",
 									BaseItem: Scalar{"string", TypeString, false},
 									Meta: meta.Meta{
 										OriginalName: "Username",
@@ -299,7 +299,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 								},
 
 								{
-									Name:     "pass",
+									ItemName: "pass",
 									BaseItem: Scalar{"string", TypeString, false},
 									Meta: meta.Meta{
 										OriginalName: "Password",
@@ -322,7 +322,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 					},
 
 					{
-						Name:     "created_at",
+						ItemName: "created_at",
 						BaseItem: Scalar{"int", TypeInteger, false},
 						Meta: meta.Meta{
 							OriginalName: "CreatedAt",
@@ -365,7 +365,7 @@ func Test_ParseItem_List(t *testing.T) {
 			Description: "parse []string",
 			Source:      Strings{},
 			Expected: List{
-				Name:     "Strings",
+				ItemName: "Strings",
 				BaseItem: Scalar{"string", TypeString, false},
 				Nullable: false,
 				Length:   EmptyLength,
@@ -377,7 +377,7 @@ func Test_ParseItem_List(t *testing.T) {
 			Description: "parse []ints",
 			Source:      Ints{},
 			Expected: List{
-				Name:     "Ints",
+				ItemName: "Ints",
 				BaseItem: Scalar{"int", TypeInteger, false},
 				Nullable: false,
 				Length:   EmptyLength,
@@ -389,7 +389,7 @@ func Test_ParseItem_List(t *testing.T) {
 			Description: "parse []floats",
 			Source:      Floats{},
 			Expected: List{
-				Name:     "Floats",
+				ItemName: "Floats",
 				BaseItem: Scalar{"float32", TypeFloat, false},
 				Nullable: false,
 				Length:   EmptyLength,
@@ -401,12 +401,12 @@ func Test_ParseItem_List(t *testing.T) {
 			Description: "parse []structs",
 			Source:      Structs{},
 			Expected: List{
-				Name: "Structs",
+				ItemName: "Structs",
 				BaseItem: Struct{
-					Name: "CustomType",
+					ItemName: "CustomType",
 					Fields: []Field{
 						{
-							Name:     "Name",
+							ItemName: "Name",
 							BaseItem: Scalar{"string", TypeString, false},
 							Meta: meta.Meta{
 								OriginalName: "Name",
@@ -428,7 +428,7 @@ func Test_ParseItem_List(t *testing.T) {
 			Description: "parse []*string",
 			Source:      StringPtrs{},
 			Expected: List{
-				Name:     "StringPtrs",
+				ItemName: "StringPtrs",
 				BaseItem: Scalar{"string", TypeString, true},
 				Nullable: false,
 				Length:   EmptyLength,
@@ -440,9 +440,9 @@ func Test_ParseItem_List(t *testing.T) {
 			Description: "parse [][]int",
 			Source:      ListList{},
 			Expected: List{
-				Name: "ListList",
+				ItemName: "ListList",
 				BaseItem: List{
-					Name:     "", // The inner list has no name
+					ItemName: "", // The inner list has no name
 					BaseItem: Scalar{"int", TypeInteger, false},
 					Length:   EmptyLength,
 					Nullable: false,
@@ -457,7 +457,7 @@ func Test_ParseItem_List(t *testing.T) {
 			Description: "parse *[]int",
 			Source:      *new(ListPtr), // new(ListPtr) returns a pointer to a nil slice, that is intentionally unhandled by the parser and will return an error for now
 			Expected: List{
-				Name:     "",
+				ItemName: "",
 				BaseItem: Scalar{"int", TypeInteger, false},
 				Nullable: true,
 				Length:   EmptyLength,
@@ -469,10 +469,10 @@ func Test_ParseItem_List(t *testing.T) {
 			Description: "parse []*[]int",
 			Source:      ListPtrs{},
 			Expected: List{
-				Name:   "ListPtrs",
-				Length: EmptyLength,
+				ItemName: "ListPtrs",
+				Length:   EmptyLength,
 				BaseItem: List{
-					Name:     "",
+					ItemName: "",
 					BaseItem: Scalar{"int", TypeInteger, false},
 					Length:   EmptyLength,
 					Nullable: true,
@@ -485,7 +485,7 @@ func Test_ParseItem_List(t *testing.T) {
 			Description: "parse [3]string",
 			Source:      FixedStrings{},
 			Expected: List{
-				Name:     "FixedStrings",
+				ItemName: "FixedStrings",
 				BaseItem: Scalar{"string", TypeString, false},
 				Length:   3,
 				Nullable: false,
@@ -497,12 +497,12 @@ func Test_ParseItem_List(t *testing.T) {
 			Description: "parse [8]structs",
 			Source:      FixedStructs{},
 			Expected: List{
-				Name: "FixedStructs",
+				ItemName: "FixedStructs",
 				BaseItem: Struct{
-					Name: "CustomType",
+					ItemName: "CustomType",
 					Fields: []Field{
 						{
-							Name:     "Name",
+							ItemName: "Name",
 							BaseItem: Scalar{"string", TypeString, false},
 							Meta: meta.Meta{
 								OriginalName: "Name",
@@ -524,7 +524,7 @@ func Test_ParseItem_List(t *testing.T) {
 			Description: "parse [6]*int",
 			Source:      FixedIntPtrs{},
 			Expected: List{
-				Name:     "FixedIntPtrs",
+				ItemName: "FixedIntPtrs",
 				BaseItem: Scalar{"int", TypeInteger, true},
 				Length:   6,
 				Nullable: false,
@@ -551,7 +551,7 @@ func Test_ParseItem_Function(t *testing.T) {
 			Description: "parse func() error",
 			Source:      Func1(nil),
 			Expected: Function{
-				Name:     "Func1",
+				ItemName: "Func1",
 				Params:   []Item{},
 				Returns:  []Item{Scalar{"error", TypeString, false}},
 				Nullable: false,
@@ -563,7 +563,7 @@ func Test_ParseItem_Function(t *testing.T) {
 			Description: "parse func(int, int) int",
 			Source:      Add(nil),
 			Expected: Function{
-				Name: "Add",
+				ItemName: "Add",
 				Params: []Item{
 					Scalar{"int", TypeInteger, false},
 					Scalar{"int", TypeInteger, false},
@@ -578,7 +578,7 @@ func Test_ParseItem_Function(t *testing.T) {
 			Description: "parse func(string, string) (int, error)",
 			Source:      ReturnMultiple(nil),
 			Expected: Function{
-				Name: "ReturnMultiple",
+				ItemName: "ReturnMultiple",
 				Params: []Item{
 					Scalar{"string", TypeString, false},
 					Scalar{"string", TypeString, true},
@@ -596,13 +596,13 @@ func Test_ParseItem_Function(t *testing.T) {
 			Description: "parse func(Foo) error",
 			Source:      InsertFoo(nil),
 			Expected: Function{
-				Name: "InsertFoo",
+				ItemName: "InsertFoo",
 				Params: []Item{
 					Struct{
-						Name: "Foo",
+						ItemName: "Foo",
 						Fields: []Field{
 							{
-								Name:     "Name",
+								ItemName: "Name",
 								BaseItem: Scalar{"string", TypeString, false},
 								Meta: meta.Meta{
 									OriginalName: "Name",

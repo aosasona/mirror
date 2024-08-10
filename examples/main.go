@@ -1,12 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"time"
-
-	"go.trulyao.dev/mirror"
-	"go.trulyao.dev/mirror/config"
-	"go.trulyao.dev/mirror/generator/typescript"
 )
 
 type Language string
@@ -38,24 +33,24 @@ type Person struct {
 }
 
 func main() {
-	start := time.Now()
-	gt := mirror.New(config.Config{
-		Enabled: true,
-	})
-
-	gt.AddSources(*new(Language), Tags{}, Person{})
-
-	t := typescript.New("example.ts", ".")
-
-	defer func(count int) {
-		fmt.Printf("Generated %d types in %s\n", count, time.Since(start))
-	}(gt.Count())
-
-	err := gt.GenerateAll()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	// start := time.Now()
+	// gt := mirror.New(config.Config{
+	// 	Enabled: true,
+	// })
+	//
+	// gt.AddSources(*new(Language), Tags{}, Person{})
+	//
+	// // t := typescript.New("example.ts", ".")
+	//
+	// defer func(count int) {
+	// 	fmt.Printf("Generated %d types in %s\n", count, time.Since(start))
+	// }(gt.Count())
+	//
+	// err := gt.GenerateAll()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
 }
 
 // Output:
