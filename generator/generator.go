@@ -7,6 +7,7 @@ import (
 var (
 	ErrNoParser      = errors.New("no parser provided")
 	ErrNoName        = errors.New("item has no name")
+	ErrNoBaseItem    = errors.New("item has no base item")
 	ErrUnhandledItem = errors.New("unhandled item type")
-	ErrUnknwonType   = errors.New("unknown item type")
+	ErrUnknownType   = errors.New("unknown item type")
 )

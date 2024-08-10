@@ -207,10 +207,10 @@ func (p *Parser) parseStruct(source reflect.Type, nullable bool) (Struct, error)
 			return Struct{}, err
 		}
 
-		fields = append(fields, Field{Name: meta.Name, BaseItem: item, Meta: meta})
+		fields = append(fields, Field{ItemName: meta.Name, BaseItem: item, Meta: meta})
 	}
 
-	return Struct{Name: source.Name(), Fields: fields, Nullable: nullable}, nil
+	return Struct{ItemName: source.Name(), Fields: fields, Nullable: nullable}, nil
 }
 
 func (p *Parser) parseMap(source reflect.Type, nullable bool) (Map, error) {
@@ -238,7 +238,7 @@ func (p *Parser) parseList(source reflect.Type, nullable bool) (List, error) {
 		length = source.Len()
 	}
 
-	return List{Name: source.Name(), BaseItem: item, Nullable: nullable, Length: length}, nil
+	return List{ItemName: source.Name(), BaseItem: item, Nullable: nullable, Length: length}, nil
 }
 
 func (p *Parser) parseFunc(source reflect.Type, nullable bool) (Function, error) {
@@ -264,7 +264,7 @@ func (p *Parser) parseFunc(source reflect.Type, nullable bool) (Function, error)
 	}
 
 	return Function{
-		Name:     source.Name(),
+		ItemName: source.Name(),
 		Params:   params,
 		Returns:  returns,
 		Nullable: nullable,

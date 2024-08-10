@@ -4,51 +4,53 @@ import (
 	"go.trulyao.dev/mirror/extractor/meta"
 )
 
-type ItemType string
+type Type string
 
 const (
 	// Scalar types
-	TypeInteger ItemType = "int"
-	TypeFloat   ItemType = "float"
-	TypeString  ItemType = "string"
-	TypeBoolean ItemType = "bool"
-	TypeAny     ItemType = "any"
-	TypeByte    ItemType = "byte"
+	TypeInteger   Type = "int"
+	TypeFloat     Type = "float"
+	TypeString    Type = "string"
+	TypeBoolean   Type = "bool"
+	TypeAny       Type = "any"
+	TypeByte      Type = "byte"
+	TypeTimestamp Type = "datetime"
 
-	TypeStruct ItemType = "struct"
-	TypeList   ItemType = "list"
-	TypeArray  ItemType = "array"
-	TypeMap    ItemType = "map"
+	TypeStruct Type = "struct"
+	TypeList   Type = "list"
+	TypeArray  Type = "array"
+	TypeMap    Type = "map"
 
-	TypeFunction  ItemType = "function"
-	TypeTimestamp ItemType = "datetime"
+	TypeFunction Type = "function"
 )
 
 // General interface to be adopted by anything that can or should be represented as an item
 // NOTE: probably should be called node but I will come back later
 type Item interface {
-	ItemName() string
-	ItemType() ItemType
+	Name() string
+	Type() Type
+	IsScalar() bool
+	IsNullable() bool
 }
 
 // Representing a field in a struct
 type Field struct {
-	Name     string
+	ItemName string
 	BaseItem Item
 	Meta     meta.Meta
 }
 
 // Represents a struct type
 type Struct struct {
-	Name     string
+	ItemName string
 	Fields   []Field
 	Nullable bool
 }
 
 // Represents a scalar type like string, number, boolean, etc.
 type Scalar struct {
-	Name     string
-	Type     ItemType
+	ItemName string
+	ItemType Type
 	Nullable bool
 }
 
@@ -56,7 +58,7 @@ type Scalar struct {
 const EmptyLength = -1 // used to represent a slice
 
 type List struct {
-	Name     string
+	ItemName string
 	BaseItem Item
 	Nullable bool
 	Length   int // -1 if slice
@@ -64,7 +66,7 @@ type List struct {
 
 // Represents a map type
 type Map struct {
-	Name     string
+	ItemName string
 	Key      Item
 	Value    Item
 	Nullable bool
@@ -72,59 +74,99 @@ type Map struct {
 
 // Represents a function
 type Function struct {
-	Name     string
+	ItemName string
 	Params   []Item
 	Returns  []Item
 	Nullable bool
 }
 
 // SCALAR
-func (s Scalar) ItemName() string {
-	return s.Name
+func (s Scalar) Name() string {
+	return s.ItemName
 }
 
-func (s Scalar) ItemType() ItemType {
-	return s.Type
+func (s Scalar) Type() Type {
+	return s.ItemType
+}
+
+func (s Scalar) IsScalar() bool {
+	return true
+}
+
+func (s Scalar) IsNullable() bool {
+	return s.Nullable
 }
 
 // STRUCT
-func (s Struct) ItemName() string {
-	return s.Name
+func (s Struct) Name() string {
+	return s.ItemName
 }
 
-func (s Struct) ItemType() ItemType {
+func (s Struct) Type() Type {
 	return TypeStruct
 }
 
-// PAIR
-func (p Map) ItemName() string {
-	return p.Name
+func (s Struct) IsScalar() bool {
+	return false
 }
 
-func (p Map) ItemType() ItemType {
+func (s Struct) IsNullable() bool {
+	return s.Nullable
+}
+
+// PAIR
+func (p Map) Name() string {
+	return p.ItemName
+}
+
+func (p Map) Type() Type {
 	return TypeMap
 }
 
-// LIST
-func (l List) ItemName() string {
-	return l.Name
+func (p Map) IsScalar() bool {
+	return false
 }
 
-func (l List) ItemType() ItemType {
+func (p Map) IsNullable() bool {
+	return p.Nullable
+}
+
+// LIST
+func (l List) Name() string {
+	return l.ItemName
+}
+
+func (l List) Type() Type {
 	return TypeList
+}
+
+func (l List) IsScalar() bool {
+	return false
 }
 
 func (l List) IsArray() bool {
 	return l.Length != EmptyLength
 }
 
-// FUNCTION
-func (f Function) ItemName() string {
-	return f.Name
+func (l List) IsNullable() bool {
+	return l.Nullable
 }
 
-func (f Function) ItemType() ItemType {
+// FUNCTION
+func (f Function) Name() string {
+	return f.ItemName
+}
+
+func (f Function) Type() Type {
 	return TypeFunction
+}
+
+func (f Function) IsScalar() bool {
+	return false
+}
+
+func (f Function) IsNullable() bool {
+	return f.Nullable
 }
 
 var (
