@@ -11,9 +11,6 @@ type Config struct {
 	// OutputPath is the path to write the generated file to
 	OutputPath string
 
-	// PreferInterface will generate object types as interfaces instead of types
-	PreferInterface bool
-
 	// PreferNullForNullable will prefer `null` over `undefined` for nullable types
 	PreferNullForNullable bool
 
@@ -69,11 +66,6 @@ func (c *Config) SetFileName(name string) *Config {
 
 func (c *Config) SetOutputPath(path string) *Config {
 	c.OutputPath = path
-	return c
-}
-
-func (c *Config) SetPreferInterface(value bool) *Config {
-	c.PreferInterface = value
 	return c
 }
 
