@@ -39,6 +39,9 @@ type GeneratorInterface interface {
 
 	// Generate all types in one go
 	GenerateAll() ([]string, error)
+
+	// Generate a single item
+	GenerateItem(parser.Item) (string, error)
 }
 
 var _ ParserInterface = &parser.Parser{}

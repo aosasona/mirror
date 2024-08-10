@@ -7,17 +7,21 @@ import (
 type ItemType string
 
 const (
-	TypeInteger  ItemType = "int"
-	TypeFloat    ItemType = "float"
-	TypeString   ItemType = "string"
-	TypeBoolean  ItemType = "bool"
-	TypeStruct   ItemType = "struct"
-	TypeList     ItemType = "list"
-	TypeArray    ItemType = "array"
-	TypeMap      ItemType = "map"
-	TypeFunction ItemType = "function"
-	TypeAny      ItemType = "any"
-	TypeDateTime ItemType = "datetime"
+	// Scalar types
+	TypeInteger ItemType = "int"
+	TypeFloat   ItemType = "float"
+	TypeString  ItemType = "string"
+	TypeBoolean ItemType = "bool"
+	TypeAny     ItemType = "any"
+	TypeByte    ItemType = "byte"
+
+	TypeStruct ItemType = "struct"
+	TypeList   ItemType = "list"
+	TypeArray  ItemType = "array"
+	TypeMap    ItemType = "map"
+
+	TypeFunction  ItemType = "function"
+	TypeTimestamp ItemType = "datetime"
 )
 
 // General interface to be adopted by anything that can or should be represented as an item

@@ -278,7 +278,22 @@ func (p *Parser) parseInterface(source reflect.Type, nullable bool) (Item, error
 	case "error":
 		return Scalar{source.Name(), TypeString, nullable}, nil
 	case "time.Time":
-		return Scalar{source.Name(), TypeDateTime, nullable}, nil
+		return Scalar{source.Name(), TypeTimestamp, nullable}, nil
+
+	// There isn't a good way to force the parser to parse a `sql.NullX` type as a scalar instead of structs (users can have the same name for their structs and the `sql` package structs)
+	// But if they are ever passed as interfaces _somehow_, we can handle them here
+	case "sql.NullString":
+		return Scalar{source.Name(), TypeString, true}, nil
+	case "sql.NullInt64", "sql.NullInt32", "sql.NullInt16":
+		return Scalar{source.Name(), TypeInteger, true}, nil
+	case "sql.NullFloat64":
+		return Scalar{source.Name(), TypeFloat, true}, nil
+	case "sql.NullBool":
+		return Scalar{source.Name(), TypeBoolean, true}, nil
+	case "sql.NullTime":
+		return Scalar{source.Name(), TypeTimestamp, true}, nil
+	case "sql.NullByte":
+		return Scalar{source.Name(), TypeByte, true}, nil
 	default:
 		return nil, fmt.Errorf("not implemented for %s", source.Name())
 	}

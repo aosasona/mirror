@@ -24,6 +24,9 @@ type Config struct {
 	// InlineObjects will inline object types instead of using the name (e.g foo: { bar: string } instead of foo: Bar)
 	InlineObjects bool
 
+	// InludeSemiColon will include a semi-colon at the end of each type definition
+	InludeSemiColon bool
+
 	// PreferUnknown will prefer `unknown` over `any`
 	PreferUnknown bool
 
@@ -73,5 +76,5 @@ func (c *Config) AddCustomType(name, value string) {
 }
 
 func (c *Config) Generator() *Generator {
-	return NewGenerator(*c)
+	return NewGenerator(c)
 }
