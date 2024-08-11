@@ -625,6 +625,53 @@ func Test_ParseItem_Function(t *testing.T) {
 	runTests(t, tests)
 }
 
+func Test_ParseEmbeddedStruct(t *testing.T) {
+	type FooEmbedded struct {
+		Name string
+	}
+
+	type FooParent struct {
+		FooEmbedded
+		Age int
+	}
+
+	tests := []Test{
+		{
+			Description: "parse embedded struct",
+			Source:      FooParent{},
+			Expected: Struct{
+				ItemName: "FooParent",
+				Fields: []Field{
+					{
+						ItemName: "Name",
+						BaseItem: Scalar{"string", TypeString, false},
+						Meta: meta.Meta{
+							OriginalName: "Name",
+							Name:         "Name",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+					{
+						ItemName: "Age",
+						BaseItem: Scalar{"int", TypeInteger, false},
+						Meta: meta.Meta{
+							OriginalName: "Age",
+							Name:         "Age",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	runTests(t, tests)
+}
+
 func runTests(t *testing.T, tests []Test) {
 	for _, tt := range tests {
 		runTest(t, tt)

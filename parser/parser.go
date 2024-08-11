@@ -194,7 +194,21 @@ func (p *Parser) parseStruct(source reflect.Type, nullable bool) (Struct, error)
 		field := source.Field(i)
 
 		// Skip unexported fields
-		if field.PkgPath != "" {
+		if !field.IsExported() {
+			continue
+		}
+
+		// If it is embedded, parse it as part of the original struct (flatten it)
+		if field.Anonymous && field.Type.Kind() == reflect.Struct {
+			item, err := p.Parse(field.Type)
+			if err != nil {
+				return Struct{}, err
+			}
+
+			if embeddedFields, ok := item.(Struct); ok {
+				fields = append(fields, embeddedFields.Fields...)
+			}
+
 			continue
 		}
 
