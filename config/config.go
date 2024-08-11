@@ -24,6 +24,26 @@ type Config struct {
 
 	// Targets are the languages and files to generate types for, at least ONE target MUST be defined
 	Targets []types.TargetInterface
+
+	// FlattenEmbeddedStructs will flatten embedded structs into the parent struct
+	//
+	// For example:
+	//
+	// type Bar struct {
+	//     BarField string
+	// }
+	//
+	// type Foo struct {
+	//     Bar
+	// }
+	//
+	// will become:
+	//
+	// type Foo struct {
+	//     BarField string
+	// }
+	//
+	FlattenEmbeddedStructs bool
 }
 
 func New() Config {

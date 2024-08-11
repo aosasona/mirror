@@ -680,6 +680,7 @@ func runTests(t *testing.T, tests []Test) {
 
 func runTest(t *testing.T, tt Test) {
 	p := New()
+	p.SetFlattenEmbeddedStructs(true) // TODO: make this better
 
 	got, err := p.Parse(reflect.TypeOf(tt.Source))
 	if err != nil && !tt.WantErr {

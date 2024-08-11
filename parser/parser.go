@@ -15,11 +15,29 @@ type Options struct {
 
 // TODO: cache parsed types
 type Parser struct {
-	sources []reflect.Type
+	FlattenEmbeddedStructs bool
+	sources                []reflect.Type
 }
 
 func New() *Parser {
 	return &Parser{}
+}
+
+func (p *Parser) Reset() {
+	p.sources = make([]reflect.Type, 0)
+}
+
+func (p *Parser) Sources() []reflect.Type {
+	return p.sources
+}
+
+func (p *Parser) SetSources(sources []reflect.Type) {
+	p.sources = sources
+}
+
+func (p *Parser) SetFlattenEmbeddedStructs(flatten bool) *Parser {
+	p.FlattenEmbeddedStructs = flatten
+	return p
 }
 
 func (p *Parser) Done() bool {
@@ -199,7 +217,7 @@ func (p *Parser) parseStruct(source reflect.Type, nullable bool) (Struct, error)
 		}
 
 		// If it is embedded, parse it as part of the original struct (flatten it)
-		if field.Anonymous && field.Type.Kind() == reflect.Struct {
+		if p.FlattenEmbeddedStructs && field.Anonymous && field.Type.Kind() == reflect.Struct {
 			item, err := p.Parse(field.Type)
 			if err != nil {
 				return Struct{}, err
