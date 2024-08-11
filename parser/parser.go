@@ -13,6 +13,7 @@ type Options struct {
 	OverrideNullable bool
 }
 
+// TODO: cache parsed types
 type Parser struct {
 	sources []reflect.Type
 }

@@ -5,6 +5,7 @@ import (
 )
 
 var (
+	ErrNoFields      = errors.New("no fields present in struct")
 	ErrNoParser      = errors.New("no parser provided")
 	ErrNoName        = errors.New("item has no name")
 	ErrNoBaseItem    = errors.New("item has no base item")

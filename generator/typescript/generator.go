@@ -26,17 +26,26 @@ type Generator struct {
 func NewGenerator(c *Config) *Generator {
 	g := Generator{config: c}
 
-	for i := 0; i < c.IndentationCount; i++ {
-		if c.IndentationType == config.Space {
-			g.indent += " "
-		} else {
-			g.indent += "\t"
-		}
+	if c.IndentationType == config.Space {
+		g.indent = strings.Repeat(" ", c.IndentationCount)
+	} else {
+		// 4 spaces to a tab
+		g.indent = strings.Repeat("\t", c.IndentationCount/4)
 	}
+
 	return &g
 }
 
-// SetParser implements generator.GeneratorInterface.
+// SetHeaderText sets the header text for the generated file
+func (g *Generator) SetHeaderText(header string) {
+	if header == "" {
+		return
+	}
+
+	fileHeader = header
+}
+
+// SetParser sets the parser to use for generating the "types tree"
 func (g *Generator) SetParser(parser types.ParserInterface) error {
 	if parser == nil {
 		return generator.ErrNoParser
@@ -46,7 +55,7 @@ func (g *Generator) SetParser(parser types.ParserInterface) error {
 	return nil
 }
 
-// GenerateItem implements types.GeneratorInterface.
+// GenerateItem generates a single item passed to it
 func (g *Generator) GenerateItem(item parser.Item) (string, error) {
 	var (
 		typeString = "type %s = %s"
@@ -54,17 +63,41 @@ func (g *Generator) GenerateItem(item parser.Item) (string, error) {
 		err        error
 	)
 
+	baseType, err = g.generateBaseType(item)
+	if err != nil {
+		return "", err
+	}
+
+	if g.config.InludeSemiColon {
+		typeString = strings.TrimSpace(typeString) + ";"
+	}
+
+	return fmt.Sprintf(typeString, item.Name(), baseType), nil
+}
+
+// generateBaseType generates the base type for the item without any additional information
+// For example, a scalar type will return `string` or `number` while a list will return `string[]` or `Array<string>`, this is then used by `GenerateItem` to generate the full type definition
+func (g *Generator) generateBaseType(item parser.Item, nestingLevel ...int) (string, error) {
+	var (
+		baseType string
+		err      error
+	)
+
 	switch item := item.(type) {
 	case parser.Scalar:
 		baseType, err = g.generateScalar(item)
 	case parser.List:
 		baseType, err = g.generateList(item)
+	case parser.Struct:
+		level := 1
+		if len(nestingLevel) > 0 {
+			level = nestingLevel[0]
+		}
+		baseType, err = g.generateStruct(item, level)
 	case parser.Map:
 	// TODO: implement
-	case parser.Struct:
-	// TODO: implement
 	case parser.Function:
-		baseType, err = g.generateFunction(item)
+	// TODO: implement
 	default:
 		return "", generator.ErrUnknownType
 	}
@@ -85,11 +118,7 @@ func (g *Generator) GenerateItem(item parser.Item) (string, error) {
 		}
 	}
 
-	if g.config.InludeSemiColon {
-		typeString = strings.TrimSpace(typeString) + ";"
-	}
-
-	return fmt.Sprintf(typeString, item.Name(), baseType), nil
+	return baseType, nil
 }
 
 // GenerateAll implements generator.GeneratorInterface.
@@ -102,16 +131,8 @@ func (g *Generator) GenerateN(int) (string, error) {
 	panic("unimplemented")
 }
 
-// SetHeaderText implements generator.GeneratorInterface.
-func (g *Generator) SetHeaderText(header string) {
-	if header == "" {
-		return
-	}
-
-	fileHeader = header
-}
-
-func (g *Generator) getTypescriptRepresentation(mirrorType parser.Type) string {
+// getScalarRepresentation returns the typescript representation of a scalar type
+func (g *Generator) getScalarRepresentation(mirrorType parser.Type) string {
 	var typeValue string
 
 	switch mirrorType {
@@ -140,11 +161,7 @@ func (g *Generator) getTypescriptRepresentation(mirrorType parser.Type) string {
 }
 
 func (g *Generator) generateScalar(item parser.Scalar) (string, error) {
-	if item.Name() == "" {
-		return "", generator.ErrNoName
-	}
-
-	typeValue := g.getTypescriptRepresentation(item.Type())
+	typeValue := g.getScalarRepresentation(item.Type())
 	if typeValue == "" {
 		return "", generator.ErrUnknownType
 	}
@@ -152,23 +169,71 @@ func (g *Generator) generateScalar(item parser.Scalar) (string, error) {
 	return typeValue, nil
 }
 
-func (g *Generator) generateStruct(item parser.Struct) (string, error) {
-	panic("unimplemented")
-}
+func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string, error) {
+	var fields []string
 
-func (g *Generator) generateField(item parser.Field) (string, error) {
-	// var (
-	// 	fieldString = "%s%s: %s"
-	// 	fieldName   = item.Name
-	// 	fieldType   string
-	// )
+	for _, field := range item.Fields {
+		if field.Meta.Skip {
+			continue
+		}
 
-	// if item.BaseItem.IsScalar() {
-	// 	fieldType = g.getTypescriptRepresentation(item.BaseItem.Type())
-	// } else {
-	// }
+		var (
+			fieldName       = field.ItemName
+			fieldStr        string
+			hasOptionalChar bool
+		)
 
-	panic("unimplemented")
+		for i := 0; i < nestingLevel; i++ {
+			fieldStr += g.indent
+		}
+
+		if field.ItemName == "" && field.Meta.Name == "" {
+			return "", generator.ErrNoName
+		}
+
+		if field.Meta.Name != "" {
+			fieldName = field.Meta.Name
+		}
+
+		fieldStr += fieldName
+
+		if field.Meta.Optional {
+			fieldStr += "?"
+			hasOptionalChar = true
+		}
+
+		fieldStr += ": "
+
+		if field.Meta.Type != "" {
+			fieldStr += field.Meta.Type
+		} else {
+			if !g.config.InlineObjects && field.BaseItem.Type() == parser.TypeStruct {
+				fieldStr += field.BaseItem.Name()
+			} else {
+				generatedType, err := g.generateBaseType(field.BaseItem, nestingLevel+1)
+				if err != nil {
+					return "", err
+				}
+				fieldStr += generatedType
+			}
+		}
+
+		// Make sure we don't end up with something like `name?: string | undefined;` as they are equivalent in TS
+		if hasOptionalChar && !g.config.PreferNullForNullable {
+			fieldStr = strings.TrimSuffix(fieldStr, " | undefined")
+		}
+
+		fieldStr += ";"
+
+		fields = append(fields, fieldStr)
+	}
+
+	if len(fields) == 0 {
+		return "", generator.ErrNoFields
+	}
+
+	typeString := "{\n%s\n" + strings.Repeat(g.indent, nestingLevel-1) + "}"
+	return fmt.Sprintf(typeString, strings.Join(fields, "\n")), nil
 }
 
 func (g *Generator) generateList(item parser.List) (string, error) {
@@ -181,10 +246,6 @@ func (g *Generator) generateList(item parser.List) (string, error) {
 		listString = "Array<%s>"
 	} else {
 		listString = "%s[]"
-	}
-
-	if item.Name() == "" {
-		return "", generator.ErrNoName
 	}
 
 	if item.BaseItem == nil {

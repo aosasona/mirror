@@ -26,9 +26,6 @@ type Config struct {
 	// PreferUnknown will prefer `unknown` over `any`
 	PreferUnknown bool
 
-	// AllowUnexportedFields will include private fields
-	AllowUnexportedFields bool
-
 	// IndentationType is the type of indentation to use (space or tab)
 	IndentationType config.Indentation
 
@@ -86,11 +83,6 @@ func (c *Config) SetIncludeSemiColon(value bool) *Config {
 
 func (c *Config) SetPreferUnknown(value bool) *Config {
 	c.PreferUnknown = value
-	return c
-}
-
-func (c *Config) SetAllowUnexportedFields(value bool) *Config {
-	c.AllowUnexportedFields = value
 	return c
 }
 
