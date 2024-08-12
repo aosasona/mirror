@@ -1,20 +1,20 @@
-package mirrorparser
+package mirrormeta
 
 import (
 	"reflect"
 	"testing"
 
-	"go.trulyao.dev/mirror/parser/tag"
+	"go.trulyao.dev/mirror/extractor/meta"
 )
 
 type TestStruct struct {
 	Name        string   `ts:"name:first_name"`
-	LastName    string   `mirror:"name:last_name"`
-	Invalid     string   `mirror:"name:,random_opt"`
-	Phone       string   `mirror:"name:phone_number,optional:true"`
-	BMI         string   `mirror:"-"`
-	NextOfKin   string   `mirror:"name:next_of_kin,skip:true"`
-	Connections []string `mirror:"name:connected_ids, type:Array<string>, optional:true"`
+	LastName    string   `                     mirror:"name:last_name"`
+	Invalid     string   `                     mirror:"name:,random_opt"`
+	Phone       string   `                     mirror:"name:phone_number,optional:true"`
+	BMI         string   `                     mirror:"-"`
+	NextOfKin   string   `                     mirror:"name:next_of_kin,skip:true"`
+	Connections []string `                     mirror:"name:connected_ids, type:Array<string>, optional:true"`
 }
 
 var testStruct = reflect.TypeOf(TestStruct{})
@@ -22,13 +22,13 @@ var testStruct = reflect.TypeOf(TestStruct{})
 func TestJSONTagParser_Parse(t *testing.T) {
 	ok := true
 
-	nameField, ok := testStruct.FieldByName("Name")
-	lastNameField, ok := testStruct.FieldByName("LastName")
-	invalidField, ok := testStruct.FieldByName("Invalid")
-	phoneField, ok := testStruct.FieldByName("Phone")
-	bmiField, ok := testStruct.FieldByName("BMI")
-	nextOfKinField, ok := testStruct.FieldByName("NextOfKin")
-	connectionsField, ok := testStruct.FieldByName("Connections")
+	nameField, _ := testStruct.FieldByName("Name")
+	lastNameField, _ := testStruct.FieldByName("LastName")
+	invalidField, _ := testStruct.FieldByName("Invalid")
+	phoneField, _ := testStruct.FieldByName("Phone")
+	bmiField, _ := testStruct.FieldByName("BMI")
+	nextOfKinField, _ := testStruct.FieldByName("NextOfKin")
+	connectionsField, _ := testStruct.FieldByName("Connections")
 
 	if !ok {
 		panic("field not found")
@@ -37,13 +37,13 @@ func TestJSONTagParser_Parse(t *testing.T) {
 	tests := []struct {
 		Name     string
 		Source   reflect.StructField
-		Expected *tag.Tag
+		Expected *meta.Meta
 		WantErr  bool
 	}{
 		{
 			Name:   "properly parse tag using v1.0 ts tag",
 			Source: nameField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "Name",
 				Name:         "first_name",
 				Skip:         false,
@@ -53,7 +53,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "properly parse tag using v2.0 mirror tag",
 			Source: lastNameField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "LastName",
 				Name:         "last_name",
 				Skip:         false,
@@ -63,7 +63,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "gracefully handle invalid tag (kv pair)",
 			Source: invalidField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "Invalid",
 				Name:         "Invalid",
 				Skip:         false,
@@ -73,7 +73,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "parse name and optional props",
 			Source: phoneField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "Phone",
 				Name:         "phone_number",
 				Skip:         false,
@@ -83,7 +83,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "skip tag using -",
 			Source: bmiField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "BMI",
 				Name:         "BMI",
 				Skip:         true,
@@ -93,7 +93,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "skip tag using skip:true",
 			Source: nextOfKinField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "NextOfKin",
 				Name:         "NextOfKin",
 				Skip:         true,
@@ -103,7 +103,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		{
 			Name:   "parse all props and override type (with whitespace) - optional",
 			Source: connectionsField,
-			Expected: &tag.Tag{
+			Expected: &meta.Meta{
 				OriginalName: "Connections",
 				Name:         "connected_ids",
 				Skip:         false,
@@ -114,13 +114,23 @@ func TestJSONTagParser_Parse(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, err := Parse(test.Source)
-		if (err != nil) != test.WantErr {
-			t.Errorf("failed to run case `%s`: unexpected error: %v", test.Name, err)
+		got, err := Extract(test.Source, nil)
+
+		if err != nil && !test.WantErr {
+			t.Errorf("[%s] wanted NO error, got error: %v", test.Name, err)
+		}
+
+		if err == nil && test.WantErr {
+			t.Errorf("[%s] wanted error, got no error", test.Name)
 		}
 
 		if !reflect.DeepEqual(got, test.Expected) {
-			t.Errorf("failed to run case `%s`: expected %+v, got %+v", test.Name, test.Expected, got)
+			t.Errorf(
+				"failed to run case `%s`: expected %+v, got %+v",
+				test.Name,
+				test.Expected,
+				got,
+			)
 		}
 	}
 }
