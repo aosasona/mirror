@@ -475,6 +475,156 @@ func Test_GenerateMap(t *testing.T) {
 	runTests(t, tests)
 }
 
+func Test_GenerateFunc(t *testing.T) {
+	tests := []Test{
+		{
+			Description: "generate function with no params or returns",
+			Src: parser.Function{
+				ItemName: "VoidFunc",
+				Params:   []parser.Item{},
+				Returns:  []parser.Item{},
+				Nullable: false,
+			},
+			Expect: "type VoidFunc = () => void;",
+			Config: typescript.Config{
+				InludeSemiColon: true,
+			},
+		},
+
+		{
+			Description: "generate function with no params and single returns",
+			Src: parser.Function{
+				ItemName: "SingleReturnFunc",
+				Params:   []parser.Item{},
+				Returns: []parser.Item{
+					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				},
+				Nullable: false,
+			},
+			Expect: "type SingleReturnFunc = () => string;",
+			Config: typescript.Config{
+				InludeSemiColon: true,
+			},
+		},
+
+		{
+			Description: "generate function with multiple params and returns",
+			Src: parser.Function{
+				ItemName: "MultiFunc",
+				Params: []parser.Item{
+					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+					parser.Scalar{ItemName: "number", ItemType: parser.TypeInteger},
+				},
+				Returns: []parser.Item{
+					parser.Scalar{ItemName: "boolean", ItemType: parser.TypeBoolean},
+				},
+			},
+			Expect: "type MultiFunc = (arg0: string, arg1: number) => boolean;",
+			Config: typescript.Config{InludeSemiColon: true},
+		},
+
+		{
+			Description: "generate function with multiple params and multiple returns",
+			Src: parser.Function{
+				ItemName: "MultiFunc",
+				Params: []parser.Item{
+					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+					parser.Scalar{ItemName: "number", ItemType: parser.TypeInteger},
+				},
+				Returns: []parser.Item{
+					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+					parser.Scalar{ItemName: "boolean", ItemType: parser.TypeBoolean},
+				},
+			},
+			Expect:  "",
+			WantErr: true,
+			Config:  typescript.Config{InludeSemiColon: true},
+		},
+
+		{
+			Description: "generate function with nullable return",
+			Src: parser.Function{
+				ItemName: "NullableReturnFunc",
+				Params:   []parser.Item{},
+				Returns: []parser.Item{
+					parser.Scalar{ItemName: "string", ItemType: parser.TypeString, Nullable: true},
+				},
+			},
+			Expect: "type NullableReturnFunc = () => string | null;",
+			Config: typescript.Config{
+				InludeSemiColon:       true,
+				PreferNullForNullable: true,
+			},
+		},
+
+		{
+			Description: "generate function with nullable params",
+			Src: parser.Function{
+				ItemName: "NullableParamFunc",
+				Params: []parser.Item{
+					parser.Scalar{ItemName: "string", ItemType: parser.TypeString, Nullable: true},
+					parser.Scalar{
+						ItemName: "number",
+						ItemType: parser.TypeInteger,
+						Nullable: false,
+					},
+				},
+				Returns: []parser.Item{
+					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				},
+			},
+			Expect: "type NullableParamFunc = (arg0: string | null, arg1: number) => string;",
+			Config: typescript.Config{
+				InludeSemiColon:       true,
+				PreferNullForNullable: true,
+			},
+		},
+
+		{
+			Description: "generate function with function param",
+			Src: parser.Function{
+				ItemName: "FuncParamFunc",
+				Params: []parser.Item{
+					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+					parser.Function{
+						ItemName: "InnerFunc",
+						Params:   []parser.Item{},
+						Returns: []parser.Item{
+							parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+						},
+					},
+				},
+				Returns: []parser.Item{},
+			},
+			Expect: "type FuncParamFunc = (arg0: string, arg1: () => string) => void;",
+			Config: typescript.Config{
+				InludeSemiColon: true,
+			},
+		},
+
+		{
+			Description: "generate function with function return",
+			Src: parser.Function{
+				ItemName: "FuncReturnFunc",
+				Params:   []parser.Item{},
+				Returns: []parser.Item{
+					parser.Function{
+						ItemName: "InnerFunc",
+						Params:   []parser.Item{},
+						Returns:  []parser.Item{},
+					},
+				},
+			},
+			Expect: "type FuncReturnFunc = () => (() => void);",
+			Config: typescript.Config{
+				InludeSemiColon: true,
+			},
+		},
+	}
+
+	runTests(t, tests)
+}
+
 func runTests(t *testing.T, tests []Test) {
 	for _, test := range tests {
 		gen := typescript.NewGenerator(&test.Config)

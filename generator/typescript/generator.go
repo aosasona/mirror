@@ -1,6 +1,7 @@
 package typescript
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -97,7 +98,7 @@ func (g *Generator) generateBaseType(item parser.Item, nestingLevel ...int) (str
 	case parser.Map:
 		baseType, err = g.generateMap(item)
 	case parser.Function:
-		// TODO: implement
+		baseType, err = g.generateFunction(item)
 	default:
 		return "", generator.ErrUnknownType
 	}
@@ -309,7 +310,38 @@ func (g *Generator) generateMap(item parser.Map) (string, error) {
 }
 
 func (g *Generator) generateFunction(item parser.Function) (string, error) {
-	panic("unimplemented")
+	var (
+		parameterTypes []string
+		returnType     = "void"
+		err            error
+	)
+
+	var paramStr string
+	for idx, param := range item.Params {
+		if paramStr, err = g.generateBaseType(param); err != nil {
+			return "", err
+		}
+
+		parameterTypes = append(parameterTypes, "arg"+fmt.Sprint(idx)+": "+paramStr)
+	}
+
+	if len(item.Returns) > 1 {
+		return "", errors.New("multiple return values are not supported in typescript")
+	}
+
+	if len(item.Returns) > 0 {
+		returnItem := item.Returns[0]
+		if returnType, err = g.generateBaseType(returnItem); err != nil {
+			return "", err
+		}
+
+		// Surround the return type with parentheses if it's a function
+		if returnItem.Type() == parser.TypeFunction {
+			returnType = "(" + returnType + ")"
+		}
+	}
+
+	return fmt.Sprintf("(%s) => %s", strings.Join(parameterTypes, ", "), returnType), nil
 }
 
 var _ types.GeneratorInterface = &Generator{}
