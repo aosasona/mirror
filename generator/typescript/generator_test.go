@@ -293,6 +293,188 @@ func Test_GenerateStruct(t *testing.T) {
 	runTests(t, tests)
 }
 
+func Test_GenerateMap(t *testing.T) {
+	tests := []Test{
+		{
+			Description: "generate map with string key and integer value",
+			Src: parser.Map{
+				ItemName: "FooMap",
+				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value:    parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
+				Nullable: false,
+			},
+			Expect: "type FooMap = Record<string, number>;",
+			Config: typescript.Config{
+				InludeSemiColon: true,
+			},
+		},
+
+		{
+			Description: "generate nullable map with string key and integer value",
+			Src: parser.Map{
+				ItemName: "FooMap",
+				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value:    parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
+				Nullable: true,
+			},
+			Expect: "type FooMap = Record<string, number> | null;",
+			Config: typescript.Config{
+				InludeSemiColon:       true,
+				PreferNullForNullable: true,
+			},
+		},
+
+		{
+			Description: "generate map with string key and nullable string value",
+			Src: parser.Map{
+				ItemName: "FooMapWithNullableValue",
+				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value: parser.Scalar{
+					ItemName: "string",
+					ItemType: parser.TypeString,
+					Nullable: true,
+				},
+				Nullable: false,
+			},
+			Expect: "type FooMapWithNullableValue = Record<string, string | null>;",
+			Config: typescript.Config{
+				InludeSemiColon:       true,
+				PreferNullForNullable: true,
+			},
+		},
+
+		{
+			Description: "generate map with non-scalar key",
+			Src: parser.Map{
+				ItemName: "FooMap",
+				Key: parser.Struct{
+					ItemName: "Foo",
+					Fields:   []parser.Field{},
+				},
+				Value: parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
+			},
+			WantErr: true,
+		},
+
+		{
+			Description: "generare map with nested map value (NO INLINING)",
+			Src: parser.Map{
+				ItemName: "FooMap",
+				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value: parser.List{
+					ItemName: "MapArray",
+					BaseItem: parser.Map{
+						ItemName: "NestedMap",
+						Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+						Value:    parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
+					},
+				},
+				Nullable: false,
+			},
+
+			Expect: "type FooMap = Record<string, Array<NestedMap>>;",
+			Config: typescript.Config{
+				InludeSemiColon:    true,
+				PreferArrayGeneric: true,
+			},
+		},
+
+		{
+			Description: "generare map with nested map value (INLINING ENABLED)",
+			Src: parser.Map{
+				ItemName: "FooMap",
+				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value: parser.List{
+					ItemName: "MapArray",
+					BaseItem: parser.Map{
+						ItemName: "NestedMap",
+						Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+						Value:    parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
+					},
+				},
+				Nullable: false,
+			},
+
+			Expect: "type FooMap = Record<string, Array<Record<string, number>>>;",
+			Config: typescript.Config{
+				InludeSemiColon:    true,
+				PreferArrayGeneric: true,
+				InlineObjects:      true,
+			},
+		},
+
+		{
+			Description: "generare map with two nested maps (INLINING ENABLED)",
+			Src: parser.Map{
+				ItemName: "FooMap",
+				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value: parser.List{
+					ItemName: "MapArray",
+					BaseItem: parser.Map{
+						ItemName: "NestedMap",
+						Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+						Value: parser.Map{
+							ItemName: "InnerNestedMap",
+							Key: parser.Scalar{
+								ItemName: "string",
+								ItemType: parser.TypeString,
+							},
+							Value: parser.Scalar{
+								ItemName: "integer",
+								ItemType: parser.TypeInteger,
+							},
+						},
+					},
+				},
+				Nullable: false,
+			},
+
+			Expect: "type FooMap = Record<string, Array<Record<string, Record<string, number>>>>;",
+			Config: typescript.Config{
+				InludeSemiColon:    true,
+				PreferArrayGeneric: true,
+				InlineObjects:      true,
+			},
+		},
+
+		{
+			Description: "generare map with two nested maps (NO INLINING)",
+			Src: parser.Map{
+				ItemName: "FooMap",
+				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value: parser.List{
+					ItemName: "MapArray",
+					BaseItem: parser.Map{
+						ItemName: "NestedMap",
+						Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+						Value: parser.Map{
+							ItemName: "InnerNestedMap",
+							Key: parser.Scalar{
+								ItemName: "string",
+								ItemType: parser.TypeString,
+							},
+							Value: parser.Scalar{
+								ItemName: "integer",
+								ItemType: parser.TypeInteger,
+							},
+						},
+					},
+				},
+				Nullable: false,
+			},
+
+			Expect: "type FooMap = Record<string, Array<NestedMap>>;",
+			Config: typescript.Config{
+				InludeSemiColon:    true,
+				PreferArrayGeneric: true,
+				InlineObjects:      false,
+			},
+		},
+	}
+
+	runTests(t, tests)
+}
+
 func runTests(t *testing.T, tests []Test) {
 	for _, test := range tests {
 		gen := typescript.NewGenerator(&test.Config)

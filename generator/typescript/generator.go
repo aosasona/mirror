@@ -95,9 +95,9 @@ func (g *Generator) generateBaseType(item parser.Item, nestingLevel ...int) (str
 		}
 		baseType, err = g.generateStruct(item, level)
 	case parser.Map:
-	// TODO: implement
+		baseType, err = g.generateMap(item)
 	case parser.Function:
-	// TODO: implement
+		// TODO: implement
 	default:
 		return "", generator.ErrUnknownType
 	}
@@ -272,7 +272,7 @@ func (g *Generator) generateList(item parser.List) (string, error) {
 	} else {
 		baseType = item.BaseItem.Name()
 		if g.config.InlineObjects {
-			if baseType, err = g.GenerateItem(item.BaseItem); err != nil {
+			if baseType, err = g.generateBaseType(item.BaseItem); err != nil {
 				return "", err
 			}
 		}
@@ -281,8 +281,31 @@ func (g *Generator) generateList(item parser.List) (string, error) {
 	return fmt.Sprintf(listString, baseType), nil
 }
 
-func (g *Generator) generateMap(item parser.List) (string, error) {
-	panic("unimplemented")
+func (g *Generator) generateMap(item parser.Map) (string, error) {
+	typeString := "Record<%s, %s>"
+
+	if item.Key == nil || item.Value == nil {
+		return "", generator.ErrNoBaseItem
+	}
+
+	var (
+		keyType, valueType string
+		err                error
+	)
+
+	if !item.Key.IsScalar() {
+		return "", fmt.Errorf("non-scalar map key (%s) is not supported", item.Key.Name())
+	}
+
+	if keyType, err = g.generateScalar(item.Key.(parser.Scalar)); err != nil {
+		return "", err
+	}
+
+	if valueType, err = g.generateBaseType(item.Value); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(typeString, keyType, valueType), nil
 }
 
 func (g *Generator) generateFunction(item parser.Function) (string, error) {
