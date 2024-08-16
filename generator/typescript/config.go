@@ -35,6 +35,21 @@ type Config struct {
 	customTypes map[string]string
 }
 
+func DefaultConfig() *Config {
+	return &Config{
+		FileName:              "generated",
+		OutputPath:            "./",
+		PreferNullForNullable: true,
+		PreferArrayGeneric:    true,
+		InlineObjects:         false,
+		InludeSemiColon:       true,
+		PreferUnknown:         false,
+		IndentationType:       config.Space,
+		IndentationCount:      4,
+		customTypes:           make(map[string]string),
+	}
+}
+
 func New(filename, path string) *Config {
 	return &Config{
 		FileName:         filename,
