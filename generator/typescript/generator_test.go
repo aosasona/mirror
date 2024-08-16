@@ -628,6 +628,8 @@ func Test_GenerateFunc(t *testing.T) {
 func runTests(t *testing.T, tests []Test) {
 	for _, test := range tests {
 		gen := typescript.NewGenerator(&test.Config)
+		gen.SetNonStrict()
+
 		got, err := gen.GenerateItem(test.Src)
 		if err != nil {
 			if !test.WantErr {

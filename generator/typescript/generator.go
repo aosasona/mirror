@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"go.trulyao.dev/mirror/config"
-	"go.trulyao.dev/mirror/generator"
 	"go.trulyao.dev/mirror/parser"
 	"go.trulyao.dev/mirror/types"
 )
@@ -19,9 +18,10 @@ var fileHeader = `/**
 `
 
 type Generator struct {
-	config *Config
-	indent string
-	parser types.ParserInterface
+	config    *Config
+	indent    string
+	parser    types.ParserInterface
+	nonStrict bool
 }
 
 func NewGenerator(c *Config) *Generator {
@@ -37,6 +37,11 @@ func NewGenerator(c *Config) *Generator {
 	return &g
 }
 
+// SetNonStrict sets the generator to be non-strict, meaning it will not throw an error if a referenced type does not exist and other strict checks
+func (g *Generator) SetNonStrict() {
+	g.nonStrict = true
+}
+
 // SetHeaderText sets the header text for the generated file
 func (g *Generator) SetHeaderText(header string) {
 	if header == "" {
@@ -49,7 +54,7 @@ func (g *Generator) SetHeaderText(header string) {
 // SetParser sets the parser to use for generating the "types tree"
 func (g *Generator) SetParser(parser types.ParserInterface) error {
 	if parser == nil {
-		return generator.ErrNoParser
+		return errors.New("parser cannot be nil")
 	}
 
 	g.parser = parser
@@ -100,7 +105,7 @@ func (g *Generator) generateBaseType(item parser.Item, nestingLevel ...int) (str
 	case parser.Function:
 		baseType, err = g.generateFunction(item)
 	default:
-		return "", generator.ErrUnknownType
+		return "", fmt.Errorf("unknown type: %T", item)
 	}
 
 	if err != nil {
@@ -108,7 +113,7 @@ func (g *Generator) generateBaseType(item parser.Item, nestingLevel ...int) (str
 	}
 
 	if baseType == "" {
-		return "", generator.ErrUnknownType
+		return "", errors.New("failed to generate base type")
 	}
 
 	if item.IsNullable() {
@@ -164,7 +169,7 @@ func (g *Generator) getScalarRepresentation(mirrorType parser.Type) string {
 func (g *Generator) generateScalar(item parser.Scalar) (string, error) {
 	typeValue := g.getScalarRepresentation(item.Type())
 	if typeValue == "" {
-		return "", generator.ErrUnknownType
+		return "", fmt.Errorf("unknown scalar type: %s", item.Name())
 	}
 
 	return typeValue, nil
@@ -189,7 +194,11 @@ func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string
 		}
 
 		if field.ItemName == "" && field.Meta.Name == "" {
-			return "", generator.ErrNoName
+			return "", fmt.Errorf(
+				"unable to find name for field `%s` in struct `%s`",
+				field.BaseItem.Name(),
+				item.Name(),
+			)
 		}
 
 		if field.Meta.Name != "" {
@@ -209,6 +218,10 @@ func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string
 			fieldStr += field.Meta.Type
 		} else {
 			if !g.config.InlineObjects && field.BaseItem.Type() == parser.TypeStruct {
+				if !g.referenceExists(field.BaseItem.Name()) {
+					return "", fmt.Errorf("referenced type `%s` does not exist, you need to either enable inline objects or pass in the referenced type", field.BaseItem.Name())
+				}
+
 				fieldStr += field.BaseItem.Name()
 			} else {
 				generatedType, err := g.generateBaseType(field.BaseItem, nestingLevel+1)
@@ -229,10 +242,6 @@ func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string
 		fields = append(fields, fieldStr)
 	}
 
-	if len(fields) == 0 {
-		return "", generator.ErrNoFields
-	}
-
 	typeString := "{\n%s\n" + strings.Repeat(g.indent, nestingLevel-1) + "}"
 	return fmt.Sprintf(typeString, strings.Join(fields, "\n")), nil
 }
@@ -250,7 +259,7 @@ func (g *Generator) generateList(item parser.List) (string, error) {
 	}
 
 	if item.BaseItem == nil {
-		return "", generator.ErrNoBaseItem
+		return "", fmt.Errorf("no base item found for list type: `%s`", item.Name())
 	}
 
 	var baseType string
@@ -271,6 +280,10 @@ func (g *Generator) generateList(item parser.List) (string, error) {
 			}
 		}
 	} else {
+		if !g.referenceExists(item.BaseItem.Name()) {
+			return "", fmt.Errorf("referenced type `%s` does not exist, you need to either enable inline objects or pass in the referenced type", item.BaseItem.Name())
+		}
+
 		baseType = item.BaseItem.Name()
 		if g.config.InlineObjects {
 			if baseType, err = g.generateBaseType(item.BaseItem); err != nil {
@@ -286,7 +299,7 @@ func (g *Generator) generateMap(item parser.Map) (string, error) {
 	typeString := "Record<%s, %s>"
 
 	if item.Key == nil || item.Value == nil {
-		return "", generator.ErrNoBaseItem
+		return "", fmt.Errorf("key or value is nil for map type: `%s`", item.Name())
 	}
 
 	var (
@@ -342,6 +355,16 @@ func (g *Generator) generateFunction(item parser.Function) (string, error) {
 	}
 
 	return fmt.Sprintf("(%s) => %s", strings.Join(parameterTypes, ", "), returnType), nil
+}
+
+// referenceExists() checks if the type being referenced exists in the parser, especially for non-inlined objects
+func (g *Generator) referenceExists(name string) bool {
+	if g.nonStrict {
+		return true
+	}
+
+	_, exists := g.parser.LookupByName(name)
+	return exists
 }
 
 var _ types.GeneratorInterface = &Generator{}

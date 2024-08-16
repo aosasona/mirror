@@ -13,7 +13,6 @@ type Options struct {
 	OverrideNullable bool
 }
 
-// TODO: cache parsed types
 type Parser struct {
 	FlattenEmbeddedStructs bool
 	sources                []reflect.Type
@@ -21,6 +20,21 @@ type Parser struct {
 
 func New() *Parser {
 	return &Parser{}
+}
+
+func (p *Parser) LookupByName(name string) (Item, bool) {
+	for _, source := range p.sources {
+		if source.Name() == name {
+			item, err := p.Parse(source)
+			if err != nil {
+				return nil, false
+			}
+
+			return item, true
+		}
+	}
+
+	return nil, false
 }
 
 func (p *Parser) Reset() {

@@ -10,6 +10,7 @@ type ParserInterface interface {
 	AddSource(reflect.Type) error
 	AddSources(...reflect.Type) error
 	ParseN(int) (parser.Item, error)
+	LookupByName(string) (parser.Item, bool)
 
 	Next() (parser.Item, error)
 	Done() bool
