@@ -169,7 +169,7 @@ func Test_GenerateStruct(t *testing.T) {
 			Expect: "type Foo = {\n    Bar: string;\n};",
 			Config: typescript.Config{
 				InludeSemiColon:  true,
-				IndentationType:  config.Space,
+				IndentationType:  config.IndentSpace,
 				IndentationCount: 4,
 				InlineObjects:    true,
 			},
@@ -194,7 +194,7 @@ func Test_GenerateStruct(t *testing.T) {
 			Expect: "type Foo = {\n\tBar: string;\n};",
 			Config: typescript.Config{
 				InludeSemiColon:  true,
-				IndentationType:  config.Tab,
+				IndentationType:  config.IndentTab,
 				IndentationCount: 4,
 				InlineObjects:    false,
 			},
@@ -225,7 +225,7 @@ func Test_GenerateStruct(t *testing.T) {
 			Expect: "type Foo = {\n\tBar: Baz;\n};",
 			Config: typescript.Config{
 				InludeSemiColon:  true,
-				IndentationType:  config.Tab,
+				IndentationType:  config.IndentTab,
 				IndentationCount: 4,
 				InlineObjects:    false,
 			},
@@ -256,7 +256,7 @@ func Test_GenerateStruct(t *testing.T) {
 			Expect: "type Foo = {\n\tBar: {\n\t\tQux: number;\n\t};\n};",
 			Config: typescript.Config{
 				InludeSemiColon:  true,
-				IndentationType:  config.Tab,
+				IndentationType:  config.IndentTab,
 				IndentationCount: 4,
 				InlineObjects:    true,
 			},
@@ -282,7 +282,7 @@ func Test_GenerateStruct(t *testing.T) {
 			Expect: "type Foo = {\n\tBar: Array<boolean>;\n};",
 			Config: typescript.Config{
 				InludeSemiColon:    true,
-				IndentationType:    config.Tab,
+				IndentationType:    config.IndentTab,
 				IndentationCount:   4,
 				InlineObjects:      false,
 				PreferArrayGeneric: true,

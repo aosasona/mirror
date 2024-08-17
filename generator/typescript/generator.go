@@ -35,7 +35,7 @@ type Generator struct {
 func NewGenerator(c *Config) *Generator {
 	g := Generator{config: c}
 
-	if c.IndentationType == config.Space {
+	if c.IndentationType == config.IndentSpace {
 		g.indent = strings.Repeat(" ", c.IndentationCount)
 	} else {
 		// 4 spaces to a tab
