@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"encoding/base64"
 	"fmt"
 	"reflect"
 
@@ -13,13 +14,26 @@ type Options struct {
 	OverrideNullable bool
 }
 
+type CacheValue struct {
+	Options Options
+	Item    *Item
+}
+
 type Parser struct {
-	FlattenEmbeddedStructs bool
-	sources                []reflect.Type
+	sources []reflect.Type
+	cache   map[string]CacheValue
+
+	enableCaching          bool
+	flattenEmbeddedStructs bool
 }
 
 func New() *Parser {
-	return &Parser{}
+	return &Parser{
+		cache:                  make(map[string]CacheValue),
+		sources:                []reflect.Type{},
+		enableCaching:          true,
+		flattenEmbeddedStructs: false,
+	}
 }
 
 func (p *Parser) LookupByName(name string) (Item, bool) {
@@ -50,7 +64,12 @@ func (p *Parser) SetSources(sources []reflect.Type) {
 }
 
 func (p *Parser) SetFlattenEmbeddedStructs(flatten bool) *Parser {
-	p.FlattenEmbeddedStructs = flatten
+	p.flattenEmbeddedStructs = flatten
+	return p
+}
+
+func (p *Parser) SetEnableCaching(enable bool) *Parser {
+	p.enableCaching = enable
 	return p
 }
 
@@ -132,6 +151,16 @@ func (p *Parser) ParseN(n int) (Item, error) {
 //
 // ```
 func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
+	cacheKey := base64.StdEncoding.EncodeToString(
+		[]byte(source.PkgPath() + ":" + source.Name()),
+	)
+
+	if p.enableCaching {
+		if value, ok := p.cache[cacheKey]; ok && reflect.DeepEqual(value.Options, opts) {
+			return *value.Item, nil
+		}
+	}
+
 	opt := Options{}
 
 	if len(opts) > 0 {
@@ -150,9 +179,15 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 		nullable = opt.OverrideNullable
 	}
 
+	var (
+		item Item
+		err  error
+	)
+
 	switch source.Kind() {
 
-	case reflect.Int8,
+	case
+		reflect.Int8,
 		reflect.Int16,
 		reflect.Int32,
 		reflect.Int64,
@@ -162,40 +197,48 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 		reflect.Uint32,
 		reflect.Uint64,
 		reflect.Uint:
-
-		return Scalar{source.Name(), TypeInteger, nullable}, nil
+		item = Scalar{source.Name(), TypeInteger, nullable}
 
 	case reflect.Float32, reflect.Float64:
-		return Scalar{source.Name(), TypeFloat, nullable}, nil
+		item = Scalar{source.Name(), TypeFloat, nullable}
 
 	case reflect.String:
-		return Scalar{source.Name(), TypeString, nullable}, nil
+		item = Scalar{source.Name(), TypeString, nullable}
 
 	case reflect.Bool:
-		return Scalar{source.Name(), TypeBoolean, nullable}, nil
+		item = Scalar{source.Name(), TypeBoolean, nullable}
 
 	case reflect.Map:
-		return p.parseMap(source, nullable)
+		item, err = p.parseMap(source, nullable)
 
 	case reflect.Struct:
-		return p.parseStruct(source, nullable)
+		item, err = p.parseStruct(source, nullable)
 
 	case reflect.Array, reflect.Slice:
-		return p.parseList(source, nullable)
+		item, err = p.parseList(source, nullable)
 
 	case reflect.Func:
-		return p.parseFunc(source, nullable)
+		item, err = p.parseFunc(source, nullable)
 
 	case reflect.Pointer:
-		return p.Parse(source.Elem(), Options{
-			OverrideNullable: true,
-		})
+		item, err = p.Parse(source.Elem(), Options{OverrideNullable: true})
 
 	case reflect.Interface:
-		return p.parseInterface(source, nullable)
+		item, err = p.parseInterface(source, nullable)
+
+	default:
+		return nil, fmt.Errorf("not implemented for %s", source.Name())
 	}
 
-	return nil, fmt.Errorf("not implemented for %s", source.Name())
+	if err != nil {
+		return nil, err
+	}
+
+	if p.enableCaching {
+		p.cache[cacheKey] = CacheValue{Options: opt, Item: &item}
+	}
+
+	return item, nil
 }
 
 func (p *Parser) parseField(field reflect.StructField) (meta.Meta, error) {
@@ -231,7 +274,7 @@ func (p *Parser) parseStruct(source reflect.Type, nullable bool) (Struct, error)
 		}
 
 		// If it is embedded, parse it as part of the original struct (flatten it)
-		if p.FlattenEmbeddedStructs && field.Anonymous && field.Type.Kind() == reflect.Struct {
+		if p.flattenEmbeddedStructs && field.Anonymous && field.Type.Kind() == reflect.Struct {
 			item, err := p.Parse(field.Type)
 			if err != nil {
 				return Struct{}, err

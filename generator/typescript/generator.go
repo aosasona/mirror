@@ -133,8 +133,13 @@ func (g *Generator) GenerateAll() ([]string, error) {
 }
 
 // GenerateN implements generator.GeneratorInterface.
-func (g *Generator) GenerateN(int) (string, error) {
-	panic("unimplemented")
+func (g *Generator) GenerateN(idx int) (string, error) {
+	source, err := g.parser.ParseN(idx)
+	if err != nil {
+		return "", err
+	}
+
+	return g.GenerateItem(source)
 }
 
 // getScalarRepresentation returns the typescript representation of a scalar type
