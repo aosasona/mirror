@@ -127,12 +127,28 @@ func (g *Generator) generateBaseType(item parser.Item, nestingLevel ...int) (str
 	return baseType, nil
 }
 
-// GenerateAll implements generator.GeneratorInterface.
+// GenerateAll generates all the type definitions in the parser
 func (g *Generator) GenerateAll() ([]string, error) {
-	panic("unimplemented")
+	var types []string
+
+	generateTS := func(item parser.Item) error {
+		typeDef, err := g.GenerateItem(item)
+		if err != nil {
+			return err
+		}
+
+		types = append(types, typeDef)
+		return nil
+	}
+
+	if err := g.parser.Iterate(generateTS); err != nil {
+		return nil, err
+	}
+
+	return types, nil
 }
 
-// GenerateN implements generator.GeneratorInterface.
+// GenerateN generates the type definition for the nth item in the parser, this operation is 0-indexed and cached by default (unless disabled in the parser)
 func (g *Generator) GenerateN(idx int) (string, error) {
 	source, err := g.parser.ParseN(idx)
 	if err != nil {

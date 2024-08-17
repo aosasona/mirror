@@ -96,6 +96,18 @@ func (p *Parser) AddSources(sources ...reflect.Type) error {
 	return nil
 }
 
+// Count the number of sources left to parse
+func (p *Parser) Count() int {
+	return len(p.sources)
+}
+
+// Check if there are any sources left to parse
+func (p *Parser) Done() bool {
+	return len(p.sources) == 0
+}
+
+// Parse the next source in the list of sources, this function consumes the source and removes it from the list
+// Call `Done` to check if there are any sources left
 func (p *Parser) Next() (Item, error) {
 	if len(p.sources) == 0 {
 		return nil, fmt.Errorf("no sources to parse")
@@ -105,6 +117,23 @@ func (p *Parser) Next() (Item, error) {
 	p.sources = p.sources[1:]
 
 	return p.Parse(source)
+}
+
+// Iterate over all sources and call the function `f` on each source
+// Unlike `Next`, this function does not consume the sources and can be called multiple times
+func (p *Parser) Iterate(f func(Item) error) error {
+	for _, source := range p.sources {
+		item, err := p.Parse(source)
+		if err != nil {
+			return err
+		}
+
+		if err := f(item); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Parse the nth source in the list of sources (0-indexed)
