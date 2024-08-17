@@ -35,6 +35,7 @@ type Config struct {
 	customTypes map[string]string
 }
 
+// DefaultConfig returns a new Config with default values
 func DefaultConfig() *Config {
 	return &Config{
 		FileName:              "generated",
@@ -50,6 +51,7 @@ func DefaultConfig() *Config {
 	}
 }
 
+// New returns a new Config with the provided filename and path
 func New(filename, path string) *Config {
 	return &Config{
 		FileName:         filename,
@@ -59,62 +61,77 @@ func New(filename, path string) *Config {
 	}
 }
 
+// Name returns the name of the file
 func (c *Config) Name() string { return c.FileName }
 
+// Path returns the path to write the file to
 func (c *Config) Path() string { return c.OutputPath }
 
+// Language returns the target language
 func (c *Config) Language() string { return "typescript" }
 
+// Extension returns the file extension
 func (c *Config) Extension() string { return "ts" }
 
-func (c *Config) Header() string {
-	return fileHeader
-}
+// Header returns the header text for the file
+func (c *Config) Header() string { return fileHeader }
 
+// SetFileName sets the name of the file to write to
 func (c *Config) SetFileName(name string) *Config {
 	c.FileName = name
 	return c
 }
 
+// SetOutputPath sets the path to write the file to
 func (c *Config) SetOutputPath(path string) *Config {
 	c.OutputPath = path
 	return c
 }
 
+// SetPreferNullForNullable sets whether or not to prefer `null` over `undefined` for nullable types
 func (c *Config) SetPreferNullForNullable(value bool) *Config {
 	c.PreferNullForNullable = value
 	return c
 }
 
+// SetInlineObjects sets whether or not to inline object types instead of using the name
+// this will result in `foo: { bar: string }` instead of `foo: Bar`
+// This is useful for generating types that you do not want to include in the generated file as a separate type
 func (c *Config) SetInlineObjects(value bool) *Config {
 	c.InlineObjects = value
 	return c
 }
 
+// SetIncludeSemiColon sets whether or not to include a semi-colon at the end of each type definition
 func (c *Config) SetIncludeSemiColon(value bool) *Config {
 	c.InludeSemiColon = value
 	return c
 }
 
+// SetPreferUnknown sets whether or not to prefer `unknown` over `any`
 func (c *Config) SetPreferUnknown(value bool) *Config {
 	c.PreferUnknown = value
 	return c
 }
 
+// SetIndentationType sets the type of indentation to use (space or tab)
 func (c *Config) SetIndentationType(value config.Indentation) *Config {
 	c.IndentationType = value
 	return c
 }
 
+// SetIndentationCount sets the number of spaces or tabs to use for indentation (defaults to 4)
 func (c *Config) SetIndentationCount(value int) *Config {
 	c.IndentationCount = value
 	return c
 }
 
+// AddCustomType adds a custom type to the config
 func (c *Config) AddCustomType(name, value string) {
 	c.customTypes[name] = value
 }
 
+// Generator returns a new Generator for the current language with the config
 func (c *Config) Generator() *Generator {
 	return NewGenerator(c)
 }

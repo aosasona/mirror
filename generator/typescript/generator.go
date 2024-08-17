@@ -18,12 +18,20 @@ var fileHeader = `/**
 `
 
 type Generator struct {
-	config    *Config
-	indent    string
-	parser    types.ParserInterface
+	// config is the configuration for the generator
+	config *Config
+
+	// indent is the indentation string used internally by the generator
+	indent string
+
+	// parser is the parser used to generate the types
+	parser types.ParserInterface
+
+	// nonStrict is a flag to determine if the generator should be non-strict
 	nonStrict bool
 }
 
+// NewGenerator returns a new typescript generator instance with the provided config
 func NewGenerator(c *Config) *Generator {
 	g := Generator{config: c}
 
@@ -44,7 +52,7 @@ func (g *Generator) SetNonStrict() {
 
 // SetHeaderText sets the header text for the generated file
 func (g *Generator) SetHeaderText(header string) {
-	if header == "" {
+	if strings.TrimSpace(header) == "" {
 		return
 	}
 
@@ -187,6 +195,7 @@ func (g *Generator) getScalarRepresentation(mirrorType parser.Type) string {
 	return typeValue
 }
 
+// generateScalar generates the typescript representation of a scalar type (string, number, boolean, etc)
 func (g *Generator) generateScalar(item parser.Scalar) (string, error) {
 	typeValue := g.getScalarRepresentation(item.Type())
 	if typeValue == "" {
@@ -196,6 +205,7 @@ func (g *Generator) generateScalar(item parser.Scalar) (string, error) {
 	return typeValue, nil
 }
 
+// generateStruct generates the typescript representation of a struct
 func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string, error) {
 	var fields []string
 
@@ -267,6 +277,7 @@ func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string
 	return fmt.Sprintf(typeString, strings.Join(fields, "\n")), nil
 }
 
+// generateList generates the typescript representation of a list type (array or slice in Go)
 func (g *Generator) generateList(item parser.List) (string, error) {
 	var (
 		listString = ""
@@ -316,6 +327,7 @@ func (g *Generator) generateList(item parser.List) (string, error) {
 	return fmt.Sprintf(listString, baseType), nil
 }
 
+// generateMap generates the typescript representation of a map
 func (g *Generator) generateMap(item parser.Map) (string, error) {
 	typeString := "Record<%s, %s>"
 
@@ -343,6 +355,7 @@ func (g *Generator) generateMap(item parser.Map) (string, error) {
 	return fmt.Sprintf(typeString, keyType, valueType), nil
 }
 
+// generateFunction generates the typescript representation of a function
 func (g *Generator) generateFunction(item parser.Function) (string, error) {
 	var (
 		parameterTypes []string

@@ -63,6 +63,10 @@ type GeneratorInterface interface {
 
 	// Generate a single item
 	GenerateItem(parser.Item) (string, error)
+
+	// Sets whether or not to use strict mode - this is enabled by default for all built-in generators
+	// This is mostly useful for testing purposes
+	SetNonStrict(bool)
 }
 
 var _ ParserInterface = &parser.Parser{}

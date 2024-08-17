@@ -27,6 +27,7 @@ type Parser struct {
 	flattenEmbeddedStructs bool
 }
 
+// New creates a new parser
 func New() *Parser {
 	return &Parser{
 		cache:                  make(map[string]CacheValue),
@@ -36,6 +37,7 @@ func New() *Parser {
 	}
 }
 
+// Lookup a source by name, returns the source and a boolean indicating if the source was found
 func (p *Parser) LookupByName(name string) (Item, bool) {
 	for _, source := range p.sources {
 		if source.Name() == name {
@@ -51,32 +53,34 @@ func (p *Parser) LookupByName(name string) (Item, bool) {
 	return nil, false
 }
 
+// Reset the parser
 func (p *Parser) Reset() {
 	p.sources = make([]reflect.Type, 0)
 }
 
+// Get the sources to parse
 func (p *Parser) Sources() []reflect.Type {
 	return p.sources
 }
 
+// Set the sources to parse
 func (p *Parser) SetSources(sources []reflect.Type) {
 	p.sources = sources
 }
 
+// Enable or disable flattening of embedded structs
 func (p *Parser) SetFlattenEmbeddedStructs(flatten bool) *Parser {
 	p.flattenEmbeddedStructs = flatten
 	return p
 }
 
+// Enable or disable caching
 func (p *Parser) SetEnableCaching(enable bool) *Parser {
 	p.enableCaching = enable
 	return p
 }
 
-func (p *Parser) Done() bool {
-	return len(p.sources) == 0
-}
-
+// Add a source to the parser
 func (p *Parser) AddSource(source reflect.Type) error {
 	if source == nil {
 		return fmt.Errorf("source cannot be nil")
@@ -86,6 +90,7 @@ func (p *Parser) AddSource(source reflect.Type) error {
 	return nil
 }
 
+// Add multiple sources to the parser
 func (p *Parser) AddSources(sources ...reflect.Type) error {
 	for _, source := range sources {
 		if err := p.AddSource(source); err != nil {
@@ -270,6 +275,7 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 	return item, nil
 }
 
+// Parse a struct field and extract the meta information
 func (p *Parser) parseField(field reflect.StructField) (meta.Meta, error) {
 	rootMeta := meta.Meta{}
 
@@ -291,6 +297,7 @@ func (p *Parser) parseField(field reflect.StructField) (meta.Meta, error) {
 	return *mirrorMeta, nil
 }
 
+// Parse a struct type
 func (p *Parser) parseStruct(source reflect.Type, nullable bool) (Struct, error) {
 	fields := make([]Field, 0)
 
@@ -332,6 +339,7 @@ func (p *Parser) parseStruct(source reflect.Type, nullable bool) (Struct, error)
 	return Struct{ItemName: source.Name(), Fields: fields, Nullable: nullable}, nil
 }
 
+// Parse a map type
 func (p *Parser) parseMap(source reflect.Type, nullable bool) (Map, error) {
 	keyItem, err := p.Parse(source.Key())
 	if err != nil {
@@ -346,6 +354,7 @@ func (p *Parser) parseMap(source reflect.Type, nullable bool) (Map, error) {
 	return Map{source.Name(), keyItem, valueItem, nullable}, nil
 }
 
+// Parse a list type (slice or array)
 func (p *Parser) parseList(source reflect.Type, nullable bool) (List, error) {
 	item, err := p.Parse(source.Elem())
 	if err != nil {
@@ -360,6 +369,7 @@ func (p *Parser) parseList(source reflect.Type, nullable bool) (List, error) {
 	return List{ItemName: source.Name(), BaseItem: item, Nullable: nullable, Length: length}, nil
 }
 
+// Parse a function type
 func (p *Parser) parseFunc(source reflect.Type, nullable bool) (Function, error) {
 	params := make([]Item, 0)
 	returns := make([]Item, 0)
@@ -390,6 +400,8 @@ func (p *Parser) parseFunc(source reflect.Type, nullable bool) (Function, error)
 	}, nil
 }
 
+// Parse an interface type
+// This accounts for various types like `interface{}`, `error`, `time.Time`, `sql.NullX` types
 func (p *Parser) parseInterface(source reflect.Type, nullable bool) (Item, error) {
 	switch source.Name() {
 	case "interface{}", "any":
