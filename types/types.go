@@ -65,6 +65,9 @@ type TargetInterface interface {
 
 	// Check if two targets are equivalent (i.e. have the same ID)
 	IsEquivalent(TargetInterface) bool
+
+	// Ensure the target has been configured correctly
+	Validate() error
 }
 
 type GeneratorInterface interface {

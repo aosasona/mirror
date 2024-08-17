@@ -1,6 +1,7 @@
 package typescript
 
 import (
+	"errors"
 	"path"
 	"strings"
 
@@ -156,4 +157,26 @@ func (c *Config) AddCustomType(name, value string) {
 // Generator returns a new Generator for the current language with the config
 func (c *Config) Generator() types.GeneratorInterface {
 	return NewGenerator(c)
+}
+
+func (c *Config) Validate() error {
+	if c.FileName == "" {
+		return errors.New("no file name provided")
+	}
+
+	if c.OutputPath == "" {
+		return errors.New("no output path provided")
+	}
+
+	if c.IndentationCount < 2 {
+		return errors.New("indentation count must be greater than or equal to 2")
+	}
+
+	if c.IndentationType != config.IndentSpace && c.IndentationType != config.IndentTab {
+		return errors.New(
+			"invalid indentation type, expected `config.IndentSpace` or `config.IndentTab` ",
+		)
+	}
+
+	return nil
 }

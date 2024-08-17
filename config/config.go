@@ -52,6 +52,10 @@ func (c *Config) AddTarget(target types.TargetInterface) *Config {
 
 	// Check if the target is already in the list
 	if slices.ContainsFunc(c.Targets, target.IsEquivalent) {
+		slog.Warn(
+			"target already exists in the list",
+			slog.String("target", target.Name()), slog.String("path", target.Path()),
+		)
 		return c
 	}
 

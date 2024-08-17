@@ -2,6 +2,10 @@ package mirror
 
 import (
 	"errors"
+	"fmt"
+	"log/slog"
+	"os"
+	"reflect"
 
 	"go.trulyao.dev/mirror/config"
 	"go.trulyao.dev/mirror/generator/typescript"
@@ -50,19 +54,48 @@ func (m *Mirror) GenerateAll() error {
 		return ErrNoTargetsDefined
 	}
 
-	// for _, target := range m.config.Targets {
-	//
-	// }
+	for _, target := range m.config.Targets {
+		if err := m.GenerateforTarget(target); err != nil {
+			slog.Error(
+				fmt.Sprintf("failed to generate `%s` code", target.Language()),
+				slog.String("error", err.Error()),
+				slog.String("target", target.Name()),
+				slog.String("path", target.Path()),
+			)
+		}
+	}
 
 	return nil
 }
 
-// func (m *Mirror) hasDuplicates() bool {
-// }
+func (m *Mirror) GenerateforTarget(target types.TargetInterface) error {
+	if err := target.Validate(); err != nil {
+		return err
+	}
 
-// Check that all built-in types match the interface types
+	dirStat, err := os.Stat(target.Path())
+	if err != nil {
+		if os.IsNotExist(err) {
+			return errors.New("output path does not exist")
+		}
+
+		return err
+	}
+
+	if !dirStat.IsDir() {
+		return errors.New("output path is not a directory")
+	}
+
+	// TODO: complete generation logic
+	// fullPath := path.Join(target.Path(), target.Name())
+
+	return nil
+}
+
+// Check that all built-in implementations match the interface types
 var _ types.ParserInterface = &parser.Parser{}
 
-var _ types.TargetInterface = &typescript.Config{}
-
-var _ types.GeneratorInterface = &typescript.Generator{}
+var (
+	_ types.TargetInterface    = &typescript.Config{}
+	_ types.GeneratorInterface = &typescript.Generator{}
+)
