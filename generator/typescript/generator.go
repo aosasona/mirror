@@ -46,8 +46,8 @@ func NewGenerator(c *Config) *Generator {
 }
 
 // SetNonStrict sets the generator to be non-strict, meaning it will not throw an error if a referenced type does not exist and other strict checks
-func (g *Generator) SetNonStrict() {
-	g.nonStrict = true
+func (g *Generator) SetNonStrict(strict bool) {
+	g.nonStrict = strict
 }
 
 // SetHeaderText sets the header text for the generated file
