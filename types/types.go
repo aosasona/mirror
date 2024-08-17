@@ -39,12 +39,25 @@ type ParserInterface interface {
 // A general language interface to make it harder to pass in a wrong language or extend the built-in languages and backends in the future
 // There will clearly be neglibile performance impact but it should not matter much here
 type TargetInterface interface {
+	// Returns the target file name with the extension
 	Name() string
+
+	// Returns the target file path
 	Path() string
+
+	// Returns the target language name (e.g. "typescript")
 	Language() string
+
+	// Returns the target file extension (e.g. ".ts")
 	Extension() string
+
+	// Returns the target file header text
 	Header() string
+
+	// Add a custom type to the target
 	AddCustomType(string, string)
+
+	// Create and return a new instance of the langyuage's generator based on the target's config
 	Generator() GeneratorInterface
 }
 

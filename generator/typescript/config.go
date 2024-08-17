@@ -1,6 +1,8 @@
 package typescript
 
 import (
+	"strings"
+
 	"go.trulyao.dev/mirror/config"
 )
 
@@ -62,10 +64,19 @@ func New(filename, path string) *Config {
 }
 
 // Name returns the name of the file
-func (c *Config) Name() string { return c.FileName }
+func (c *Config) Name() string {
+	fileName := c.FileName
+	if strings.HasSuffix(fileName, ".ts") {
+		return fileName
+	}
+
+	return c.FileName + ".ts"
+}
 
 // Path returns the path to write the file to
-func (c *Config) Path() string { return c.OutputPath }
+func (c *Config) Path() string {
+	return c.OutputPath
+}
 
 // Language returns the target language
 func (c *Config) Language() string { return "typescript" }
