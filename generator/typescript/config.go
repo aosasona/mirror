@@ -49,7 +49,7 @@ func DefaultConfig() *Config {
 		InlineObjects:         false,
 		InludeSemiColon:       true,
 		PreferUnknown:         false,
-		IndentationType:       config.Space,
+		IndentationType:       config.IndentSpace,
 		IndentationCount:      4,
 		customTypes:           make(map[string]string),
 	}

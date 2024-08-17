@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log/slog"
 	"slices"
 
 	"go.trulyao.dev/mirror/types"
@@ -9,17 +10,10 @@ import (
 type Indentation int
 
 const (
-	emptyIndent Indentation = iota
-	Space
-	Tab
+	indentNone Indentation = iota
+	IndentSpace
+	IndentTab
 )
-
-// Debug is a global variable that can be used to enable or disable debug mode
-var Debug = false
-
-func SetDebug(v bool) {
-	Debug = v
-}
 
 // Pointers have been used here to make sure the user actually sets the value and not just uses the default value
 type Config struct {
