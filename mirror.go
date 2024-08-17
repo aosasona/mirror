@@ -13,11 +13,9 @@ import (
 	"go.trulyao.dev/mirror/types"
 )
 
-type Sources []any
-
 type Mirror struct {
-	config  config.Config
-	sources Sources
+	parser types.ParserInterface
+	config config.Config
 }
 
 var (
@@ -25,28 +23,42 @@ var (
 	ErrNoTargetsDefined = errors.New("no targets provided, at least one target must be defined")
 )
 
-func New(c config.Config) *Mirror {
-	return &Mirror{config: c}
+func New(mirrorConfig config.Config, optionalParser ...types.ParserInterface) *Mirror {
+	var p types.ParserInterface
+
+	p = parser.New()
+	if len(optionalParser) > 0 {
+		p = optionalParser[0]
+	}
+
+	return &Mirror{config: mirrorConfig, parser: p}
 }
 
 func (m *Mirror) Count() int {
-	return len(m.sources)
+	return m.parser.Count()
 }
 
 func (m *Mirror) AddSource(s any) {
-	m.sources = append(m.sources, s)
+	m.parser.AddSource(reflect.TypeOf(s))
 }
 
 func (m *Mirror) AddSources(s ...any) {
-	m.sources = append(m.sources, s...)
+	for _, source := range s {
+		m.AddSource(source)
+	}
 }
 
 func (m *Mirror) AddTarget(t types.TargetInterface) {
 	m.config.AddTarget(t)
 }
 
+func (m *Mirror) OverrideParser(p types.ParserInterface) {
+	slog.Info("overriding parser")
+	m.parser = p
+}
+
 func (m *Mirror) GenerateAll() error {
-	if len(m.sources) == 0 {
+	if m.Count() == 0 {
 		return ErrNoSources
 	}
 
