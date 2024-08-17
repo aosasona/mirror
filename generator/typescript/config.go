@@ -1,9 +1,11 @@
 package typescript
 
 import (
+	"path"
 	"strings"
 
 	"go.trulyao.dev/mirror/config"
+	"go.trulyao.dev/mirror/types"
 )
 
 type Config struct {
@@ -61,6 +63,15 @@ func New(filename, path string) *Config {
 		customTypes:      make(map[string]string),
 		IndentationCount: 4,
 	}
+}
+
+// ID returns a unique identifier for a target
+func (c *Config) ID() string {
+	return strings.ReplaceAll(path.Join(c.OutputPath, c.Name()), "/", ":")
+}
+
+func (c *Config) IsEquivalent(target types.TargetInterface) bool {
+	return c.ID() == target.ID()
 }
 
 // Name returns the name of the file
@@ -143,6 +154,6 @@ func (c *Config) AddCustomType(name, value string) {
 }
 
 // Generator returns a new Generator for the current language with the config
-func (c *Config) Generator() *Generator {
+func (c *Config) Generator() types.GeneratorInterface {
 	return NewGenerator(c)
 }

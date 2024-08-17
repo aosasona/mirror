@@ -179,7 +179,7 @@ func (p *Parser) ParseN(n int) (Item, error) {
 //		   }
 //
 //		  parser.Parse(reflect.TypeOf(Bar{}), parser.Options{
-//	       OverrideNullable: mirror.Bool(false)
+//	       OverrideNullable: false
 //	   })
 //	}
 //

@@ -400,5 +400,3 @@ func (g *Generator) referenceExists(name string) bool {
 	_, exists := g.parser.LookupByName(name)
 	return exists
 }
-
-var _ types.GeneratorInterface = &Generator{}

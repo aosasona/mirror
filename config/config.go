@@ -1,6 +1,10 @@
 package config
 
-import "go.trulyao.dev/mirror/types"
+import (
+	"slices"
+
+	"go.trulyao.dev/mirror/types"
+)
 
 type Indentation int
 
@@ -46,12 +50,19 @@ type Config struct {
 	FlattenEmbeddedStructs bool
 }
 
-func New() Config {
-	return Config{}
-}
+func (c *Config) AddTarget(target types.TargetInterface) *Config {
+	// Targets cannot be empty
+	if c.Targets == nil {
+		return c
+	}
 
-func (c *Config) AddTarget(t types.TargetInterface) {
-	c.Targets = append(c.Targets, t)
+	// Check if the target is already in the list
+	if slices.ContainsFunc(c.Targets, target.IsEquivalent) {
+		return c
+	}
+
+	c.Targets = append(c.Targets, target)
+	return nil
 }
 
 func (c *Config) AddTargets(t ...types.TargetInterface) {

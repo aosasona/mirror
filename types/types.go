@@ -59,6 +59,12 @@ type TargetInterface interface {
 
 	// Create and return a new instance of the langyuage's generator based on the target's config
 	Generator() GeneratorInterface
+
+	// Unique identifier for the target
+	ID() string
+
+	// Check if two targets are equivalent (i.e. have the same ID)
+	IsEquivalent(TargetInterface) bool
 }
 
 type GeneratorInterface interface {
