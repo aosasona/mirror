@@ -37,6 +37,9 @@ type Config struct {
 	// IndentationCount is the number of spaces or tabs to use for indentation (defaults to 4)
 	IndentationCount int
 
+	// Prefix is the prefix to add to the generated types (e.g. type Person -> type MyPrefixPerson)
+	TypePrefix string
+
 	customTypes map[string]string
 }
 
@@ -71,8 +74,14 @@ func (c *Config) ID() string {
 	return strings.ReplaceAll(path.Join(c.OutputPath, c.Name()), "/", ":")
 }
 
+// IsEquivalent checks if two targets are equivalent
 func (c *Config) IsEquivalent(target types.TargetInterface) bool {
 	return c.ID() == target.ID()
+}
+
+// Prefix returns the prefix to add to the generated types
+func (c *Config) Prefix() string {
+	return c.TypePrefix
 }
 
 // Name returns the name of the file
@@ -146,6 +155,12 @@ func (c *Config) SetIndentationType(value config.Indentation) *Config {
 // SetIndentationCount sets the number of spaces or tabs to use for indentation (defaults to 4)
 func (c *Config) SetIndentationCount(value int) *Config {
 	c.IndentationCount = value
+	return c
+}
+
+// SetPrefix sets the prefix to add to the generated types
+func (c *Config) SetPrefix(value string) *Config {
+	c.TypePrefix = value
 	return c
 }
 

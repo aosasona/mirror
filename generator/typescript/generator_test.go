@@ -581,7 +581,7 @@ func Test_GenerateFunc(t *testing.T) {
 		},
 
 		{
-			Description: "generate function with function param",
+			Description: "generate function with function param (INLINING ENABLED)",
 			Src: parser.Function{
 				ItemName: "FuncParamFunc",
 				Params: []parser.Item{
@@ -598,6 +598,30 @@ func Test_GenerateFunc(t *testing.T) {
 			},
 			Expect: "type FuncParamFunc = (arg0: string, arg1: () => string) => void;",
 			Config: typescript.Config{
+				InlineObjects:   true,
+				InludeSemiColon: true,
+			},
+		},
+
+		{
+			Description: "generate function with function param (NO INLINING)",
+			Src: parser.Function{
+				ItemName: "FuncParamFunc",
+				Params: []parser.Item{
+					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+					parser.Function{
+						ItemName: "InnerFunc",
+						Params:   []parser.Item{},
+						Returns: []parser.Item{
+							parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+						},
+					},
+				},
+				Returns: []parser.Item{},
+			},
+			Expect: "type FuncParamFunc = (arg0: string, arg1: InnerFunc) => void;",
+			Config: typescript.Config{
+				InlineObjects:   false,
 				InludeSemiColon: true,
 			},
 		},

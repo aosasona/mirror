@@ -86,7 +86,12 @@ func (g *Generator) GenerateItem(item parser.Item) (string, error) {
 		typeString = strings.TrimSpace(typeString) + ";"
 	}
 
-	return fmt.Sprintf(typeString, item.Name(), baseType), nil
+	typeName := item.Name()
+	if g.config.TypePrefix != "" {
+		typeName = g.config.TypePrefix + typeName
+	}
+
+	return fmt.Sprintf(typeString, typeName, baseType), nil
 }
 
 // generateBaseType generates the base type for the item without any additional information
@@ -371,10 +376,15 @@ func (g *Generator) generateFunction(item parser.Function) (string, error) {
 		err            error
 	)
 
-	var paramStr string
 	for idx, param := range item.Params {
-		if paramStr, err = g.generateBaseType(param); err != nil {
-			return "", err
+		var paramStr string
+
+		if g.config.InlineObjects || param.IsScalar() {
+			if paramStr, err = g.generateBaseType(param); err != nil {
+				return "", err
+			}
+		} else {
+			paramStr = param.Name()
 		}
 
 		parameterTypes = append(parameterTypes, "arg"+fmt.Sprint(idx)+": "+paramStr)

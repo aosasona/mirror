@@ -60,6 +60,9 @@ type TargetInterface interface {
 	// Returns the target file header text
 	Header() string
 
+	// Prefix for the types in the target
+	Prefix() string
+
 	// Add a custom type to the target
 	AddCustomType(string, string)
 
