@@ -7,32 +7,30 @@
 
 type Language = string;
 
-type Time = number;
-
 type Address = {
-    line_1: string | null;
-    line_2: string | null;
-    street: string;
-    city: string;
-    state: string;
-    postal_code: string;
-    country: string;
+	line_1: string | null;
+	line_2: string | null;
+	street: string;
+	city: string;
+	state: string;
+	postal_code: string;
+	country: string;
 };
 
 type Tags = Record<string, string>;
 
 type Person = {
-    first_name: string;
-    last_name: string;
-    age: number;
-    address: Address;
-    languages: Array<string>;
-    grades?: Record<string, number>;
-    tags: Record<string, string>;
-    created_at: Time;
-    updated_at: number | null;
-    deleted_at: Time;
-    is_active: boolean;
+	first_name: string;
+	last_name: string;
+	age: number;
+	address: Address;
+	languages: Array<string>;
+	grades?: Record<string, number>;
+	tags: Record<string, string>;
+	created_at: string;
+	updated_at: number | null;
+	deleted_at: string | null;
+	is_active: boolean;
 };
 
 type CreateUserFunc = (arg0: Person) => string;

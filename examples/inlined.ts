@@ -7,68 +7,58 @@
 
 type Inline_Language = string;
 
-type Inline_Time = number;
-
 type Inline_Address = {
-    line_1: string | null;
-    line_2: string | null;
-    street: string;
-    city: string;
-    state: string;
-    postal_code: string;
-    country: string;
+	line_1: string | null;
+	line_2: string | null;
+	street: string;
+	city: string;
+	state: string;
+	postal_code: string;
+	country: string;
 };
 
 type Inline_Tags = Record<string, string>;
 
 type Inline_Person = {
-    first_name: string;
-    last_name: string;
-    age: number;
-    address: {
-        line_1: string | null;
-        line_2: string | null;
-        street: string;
-        city: string;
-        state: string;
-        postal_code: string;
-        country: string;
-    };
-    languages: Array<string>;
-    grades?: Record<string, number>;
-    tags: Record<string, string>;
-    created_at: {
-
-    };
-    updated_at: number | null;
-    deleted_at: {
-
-    } | null;
-    is_active: boolean;
+	first_name: string;
+	last_name: string;
+	age: number;
+	address: {
+		line_1: string | null;
+		line_2: string | null;
+		street: string;
+		city: string;
+		state: string;
+		postal_code: string;
+		country: string;
+	};
+	languages: Array<string>;
+	grades?: Record<string, number>;
+	tags: Record<string, string>;
+	created_at: string;
+	updated_at: number | null;
+	deleted_at: string | null;
+	is_active: boolean;
 };
 
 type Inline_CreateUserFunc = (arg0: {
-    first_name: string;
-    last_name: string;
-    age: number;
-    address: {
-        line_1: string | null;
-        line_2: string | null;
-        street: string;
-        city: string;
-        state: string;
-        postal_code: string;
-        country: string;
-    };
-    languages: Array<string>;
-    grades?: Record<string, number>;
-    tags: Record<string, string>;
-    created_at: {
-
-    };
-    updated_at: number | null;
-    deleted_at: {
-
-    } | null;
-    is_active: boolean;
+	first_name: string;
+	last_name: string;
+	age: number;
+	address: {
+		line_1: string | null;
+		line_2: string | null;
+		street: string;
+		city: string;
+		state: string;
+		postal_code: string;
+		country: string;
+	};
+	languages: Array<string>;
+	grades?: Record<string, number>;
+	tags: Record<string, string>;
+	created_at: string;
+	updated_at: number | null;
+	deleted_at: string | null;
+	is_active: boolean;
 }) => string;

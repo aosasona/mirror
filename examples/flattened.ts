@@ -7,8 +7,6 @@
 
 type Flattened_Language = string;
 
-type Flattened_Time = number;
-
 type Flattened_Tags = Record<string, string>;
 
 type Flattened_Person = {
@@ -25,9 +23,9 @@ type Flattened_Person = {
     languages: Array<string>;
     grades?: Record<string, number>;
     tags: Record<string, string>;
-    created_at: Time;
+    created_at: string;
     updated_at: number | null;
-    deleted_at: Time;
+    deleted_at: string | null;
     is_active: boolean;
 };
 
