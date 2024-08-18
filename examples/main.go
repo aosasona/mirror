@@ -48,7 +48,7 @@ func main() {
 		FlattenEmbeddedStructs: false,
 	})
 
-	m.AddSources(*new(Language), Address{}, Tags{}, Person{}, CreateUserFunc(nil))
+	m.AddSources(Language(""), Address{}, Tags{}, Person{}, CreateUserFunc(nil))
 
 	defaultTS := typescript.DefaultConfig().
 		SetFileName("default.ts").
