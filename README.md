@@ -4,8 +4,6 @@
 
 > [!WARNING]
 > This documentation is a work-in-progress and will be updated as required, if you are unclear if mirror supports your usecase or how to do something, please have a look at the GoDocs or open an issue.
->
-> V1 is now deprecated and unmaintained.
 
 Mirror allows you to generate types for other languages using your existing Go types, this can be useful for some form of end-to-end type safety.
 
