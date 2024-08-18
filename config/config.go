@@ -20,6 +20,9 @@ type Config struct {
 	// Enabled can be used to disable or enable the generation of types, defaults to false
 	Enabled bool
 
+	// EnableParserCache will enable caching of parsed types
+	EnableParserCache bool
+
 	// Targets are the languages and files to generate types for, at least ONE target MUST be defined
 	Targets []types.TargetInterface
 
@@ -44,9 +47,18 @@ type Config struct {
 	FlattenEmbeddedStructs bool
 }
 
+// DefaultConfig returns a new Config with default values (Mirror is disabled by default)
+func DefaultConfig() *Config {
+	return &Config{
+		Enabled:                false,
+		EnableParserCache:      true,
+		FlattenEmbeddedStructs: true,
+	}
+}
+
 func (c *Config) AddTarget(target types.TargetInterface) *Config {
 	// Targets cannot be empty
-	if c.Targets == nil {
+	if target == nil {
 		return c
 	}
 
