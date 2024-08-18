@@ -5,8 +5,8 @@ import (
 	"path"
 	"strings"
 
-	"go.trulyao.dev/mirror/config"
-	"go.trulyao.dev/mirror/types"
+	"go.trulyao.dev/mirror/v2/config"
+	"go.trulyao.dev/mirror/v2/types"
 )
 
 // Config is the configuration for the typescript generator, it also implements the types.TargetInterface and is used to define a Typescript target

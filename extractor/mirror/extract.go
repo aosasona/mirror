@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	"go.trulyao.dev/mirror/extractor/meta"
-	"go.trulyao.dev/mirror/helper"
+	"go.trulyao.dev/mirror/v2/extractor/meta"
+	"go.trulyao.dev/mirror/v2/helper"
 )
 
 func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {

@@ -3,7 +3,7 @@ package types
 import (
 	"reflect"
 
-	"go.trulyao.dev/mirror/parser"
+	"go.trulyao.dev/mirror/v2/parser"
 )
 
 type ParserInterface interface {

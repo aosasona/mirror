@@ -7,9 +7,9 @@ import (
 	"reflect"
 	"time"
 
-	"go.trulyao.dev/mirror/extractor"
-	"go.trulyao.dev/mirror/extractor/meta"
-	"go.trulyao.dev/mirror/helper"
+	"go.trulyao.dev/mirror/v2/extractor"
+	"go.trulyao.dev/mirror/v2/extractor/meta"
+	"go.trulyao.dev/mirror/v2/helper"
 )
 
 type Options struct {
@@ -184,8 +184,8 @@ func (p *Parser) ParseN(n int) (Item, error) {
 //
 // import (
 //
-//	"go.trulyao.dev/mirror"
-//	"go.trulyao.dev/mirror/parser"
+//	"go.trulyao.dev/mirror/v2"
+//	"go.trulyao.dev/mirror/v2/parser"
 //
 // )
 //
