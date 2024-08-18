@@ -29,7 +29,7 @@ func Test_GenerateScalar(t *testing.T) {
 				ItemType: parser.TypeString,
 				Nullable: false,
 			},
-			Expect: "type FooString = string;",
+			Expect: "export type FooString = string;",
 			Config: config,
 		},
 		{
@@ -39,7 +39,7 @@ func Test_GenerateScalar(t *testing.T) {
 				ItemType: parser.TypeString,
 				Nullable: true,
 			},
-			Expect: "type NullableString = string | undefined;",
+			Expect: "export type NullableString = string | undefined;",
 			Config: config,
 		},
 		{
@@ -49,7 +49,7 @@ func Test_GenerateScalar(t *testing.T) {
 				ItemType: parser.TypeInteger,
 				Nullable: false,
 			},
-			Expect: "type FooInt = number;",
+			Expect: "export type FooInt = number;",
 			Config: config,
 		},
 		{
@@ -59,7 +59,7 @@ func Test_GenerateScalar(t *testing.T) {
 				ItemType: parser.TypeInteger,
 				Nullable: true,
 			},
-			Expect: "type NullableInt = number | undefined;",
+			Expect: "export type NullableInt = number | undefined;",
 			Config: config,
 		},
 	}
@@ -80,7 +80,7 @@ func Test_GenerateArray(t *testing.T) {
 				},
 				Nullable: true,
 			},
-			Expect: "type IntArray = Array<number> | null;",
+			Expect: "export type IntArray = Array<number> | null;",
 			Config: typescript.Config{
 				PreferArrayGeneric:    true,
 				InludeSemiColon:       true,
@@ -99,7 +99,7 @@ func Test_GenerateArray(t *testing.T) {
 				},
 				Nullable: false,
 			},
-			Expect: "type NullIntArray = Array<number | null>;",
+			Expect: "export type NullIntArray = Array<number | null>;",
 			Config: typescript.Config{
 				PreferArrayGeneric:    true,
 				InludeSemiColon:       true,
@@ -118,7 +118,7 @@ func Test_GenerateArray(t *testing.T) {
 				},
 				Nullable: false,
 			},
-			Expect: "type NullIntArray = (number | null)[];",
+			Expect: "export type NullIntArray = (number | null)[];",
 			Config: typescript.Config{
 				PreferArrayGeneric:    false,
 				InludeSemiColon:       true,
@@ -137,7 +137,7 @@ func Test_GenerateArray(t *testing.T) {
 				},
 				Nullable: true,
 			},
-			Expect: "type IntArray = Array<Foo> | undefined;",
+			Expect: "export type IntArray = Array<Foo> | undefined;",
 			Config: typescript.Config{
 				PreferArrayGeneric: true,
 				InludeSemiColon:    true,
@@ -166,7 +166,7 @@ func Test_GenerateStruct(t *testing.T) {
 				},
 				Nullable: false,
 			},
-			Expect: "type Foo = {\n    Bar: string;\n};",
+			Expect: "export type Foo = {\n    Bar: string;\n};",
 			Config: typescript.Config{
 				InludeSemiColon:  true,
 				IndentationType:  config.IndentSpace,
@@ -191,7 +191,7 @@ func Test_GenerateStruct(t *testing.T) {
 				},
 				Nullable: false,
 			},
-			Expect: "type Foo = {\n\tBar: string;\n};",
+			Expect: "export type Foo = {\n\tBar: string;\n};",
 			Config: typescript.Config{
 				InludeSemiColon:  true,
 				IndentationType:  config.IndentTab,
@@ -222,7 +222,7 @@ func Test_GenerateStruct(t *testing.T) {
 					},
 				},
 			},
-			Expect: "type Foo = {\n\tBar: Baz;\n};",
+			Expect: "export type Foo = {\n\tBar: Baz;\n};",
 			Config: typescript.Config{
 				InludeSemiColon:  true,
 				IndentationType:  config.IndentTab,
@@ -253,7 +253,7 @@ func Test_GenerateStruct(t *testing.T) {
 					},
 				},
 			},
-			Expect: "type Foo = {\n\tBar: {\n\t\tQux: number;\n\t};\n};",
+			Expect: "export type Foo = {\n\tBar: {\n\t\tQux: number;\n\t};\n};",
 			Config: typescript.Config{
 				InludeSemiColon:  true,
 				IndentationType:  config.IndentTab,
@@ -279,7 +279,7 @@ func Test_GenerateStruct(t *testing.T) {
 					},
 				},
 			},
-			Expect: "type Foo = {\n\tBar: Array<boolean>;\n};",
+			Expect: "export type Foo = {\n\tBar: Array<boolean>;\n};",
 			Config: typescript.Config{
 				InludeSemiColon:    true,
 				IndentationType:    config.IndentTab,
@@ -303,7 +303,7 @@ func Test_GenerateMap(t *testing.T) {
 				Value:    parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
 				Nullable: false,
 			},
-			Expect: "type FooMap = Record<string, number>;",
+			Expect: "export type FooMap = Record<string, number>;",
 			Config: typescript.Config{
 				InludeSemiColon: true,
 			},
@@ -317,7 +317,7 @@ func Test_GenerateMap(t *testing.T) {
 				Value:    parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
 				Nullable: true,
 			},
-			Expect: "type FooMap = Record<string, number> | null;",
+			Expect: "export type FooMap = Record<string, number> | null;",
 			Config: typescript.Config{
 				InludeSemiColon:       true,
 				PreferNullForNullable: true,
@@ -336,7 +336,7 @@ func Test_GenerateMap(t *testing.T) {
 				},
 				Nullable: false,
 			},
-			Expect: "type FooMapWithNullableValue = Record<string, string | null>;",
+			Expect: "export type FooMapWithNullableValue = Record<string, string | null>;",
 			Config: typescript.Config{
 				InludeSemiColon:       true,
 				PreferNullForNullable: true,
@@ -372,7 +372,7 @@ func Test_GenerateMap(t *testing.T) {
 				Nullable: false,
 			},
 
-			Expect: "type FooMap = Record<string, Array<NestedMap>>;",
+			Expect: "export type FooMap = Record<string, Array<NestedMap>>;",
 			Config: typescript.Config{
 				InludeSemiColon:    true,
 				PreferArrayGeneric: true,
@@ -395,7 +395,7 @@ func Test_GenerateMap(t *testing.T) {
 				Nullable: false,
 			},
 
-			Expect: "type FooMap = Record<string, Array<Record<string, number>>>;",
+			Expect: "export type FooMap = Record<string, Array<Record<string, number>>>;",
 			Config: typescript.Config{
 				InludeSemiColon:    true,
 				PreferArrayGeneric: true,
@@ -429,7 +429,7 @@ func Test_GenerateMap(t *testing.T) {
 				Nullable: false,
 			},
 
-			Expect: "type FooMap = Record<string, Array<Record<string, Record<string, number>>>>;",
+			Expect: "export type FooMap = Record<string, Array<Record<string, Record<string, number>>>>;",
 			Config: typescript.Config{
 				InludeSemiColon:    true,
 				PreferArrayGeneric: true,
@@ -463,7 +463,7 @@ func Test_GenerateMap(t *testing.T) {
 				Nullable: false,
 			},
 
-			Expect: "type FooMap = Record<string, Array<NestedMap>>;",
+			Expect: "export type FooMap = Record<string, Array<NestedMap>>;",
 			Config: typescript.Config{
 				InludeSemiColon:    true,
 				PreferArrayGeneric: true,
@@ -485,7 +485,7 @@ func Test_GenerateFunc(t *testing.T) {
 				Returns:  []parser.Item{},
 				Nullable: false,
 			},
-			Expect: "type VoidFunc = () => void;",
+			Expect: "export type VoidFunc = () => void;",
 			Config: typescript.Config{
 				InludeSemiColon: true,
 			},
@@ -501,7 +501,7 @@ func Test_GenerateFunc(t *testing.T) {
 				},
 				Nullable: false,
 			},
-			Expect: "type SingleReturnFunc = () => string;",
+			Expect: "export type SingleReturnFunc = () => string;",
 			Config: typescript.Config{
 				InludeSemiColon: true,
 			},
@@ -519,7 +519,7 @@ func Test_GenerateFunc(t *testing.T) {
 					parser.Scalar{ItemName: "boolean", ItemType: parser.TypeBoolean},
 				},
 			},
-			Expect: "type MultiFunc = (arg0: string, arg1: number) => boolean;",
+			Expect: "export type MultiFunc = (arg0: string, arg1: number) => boolean;",
 			Config: typescript.Config{InludeSemiColon: true},
 		},
 
@@ -550,7 +550,7 @@ func Test_GenerateFunc(t *testing.T) {
 					parser.Scalar{ItemName: "string", ItemType: parser.TypeString, Nullable: true},
 				},
 			},
-			Expect: "type NullableReturnFunc = () => string | null;",
+			Expect: "export type NullableReturnFunc = () => string | null;",
 			Config: typescript.Config{
 				InludeSemiColon:       true,
 				PreferNullForNullable: true,
@@ -573,7 +573,7 @@ func Test_GenerateFunc(t *testing.T) {
 					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
 				},
 			},
-			Expect: "type NullableParamFunc = (arg0: string | null, arg1: number) => string;",
+			Expect: "export type NullableParamFunc = (arg0: string | null, arg1: number) => string;",
 			Config: typescript.Config{
 				InludeSemiColon:       true,
 				PreferNullForNullable: true,
@@ -596,7 +596,7 @@ func Test_GenerateFunc(t *testing.T) {
 				},
 				Returns: []parser.Item{},
 			},
-			Expect: "type FuncParamFunc = (arg0: string, arg1: () => string) => void;",
+			Expect: "export type FuncParamFunc = (arg0: string, arg1: () => string) => void;",
 			Config: typescript.Config{
 				InlineObjects:   true,
 				InludeSemiColon: true,
@@ -619,7 +619,7 @@ func Test_GenerateFunc(t *testing.T) {
 				},
 				Returns: []parser.Item{},
 			},
-			Expect: "type FuncParamFunc = (arg0: string, arg1: InnerFunc) => void;",
+			Expect: "export type FuncParamFunc = (arg0: string, arg1: InnerFunc) => void;",
 			Config: typescript.Config{
 				InlineObjects:   false,
 				InludeSemiColon: true,
@@ -639,7 +639,7 @@ func Test_GenerateFunc(t *testing.T) {
 					},
 				},
 			},
-			Expect: "type FuncReturnFunc = () => (() => void);",
+			Expect: "export type FuncReturnFunc = () => (() => void);",
 			Config: typescript.Config{
 				InludeSemiColon: true,
 			},
