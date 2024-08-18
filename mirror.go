@@ -67,20 +67,24 @@ func (m *Mirror) AddSource(s any) *Mirror {
 }
 
 // AddSources() adds multiple sources to the list of sources to generate code for
-func (m *Mirror) AddSources(s ...any) {
+func (m *Mirror) AddSources(s ...any) *Mirror {
 	for _, source := range s {
 		m.AddSource(source)
 	}
+
+	return m
 }
 
 // ResetTargets() resets the targets to an empty list
-func (m *Mirror) ResetTargets() {
+func (m *Mirror) ResetTargets() *Mirror {
 	m.config.Targets = []types.TargetInterface{}
+	return m
 }
 
 // ResetSources() resets the sources to an empty list
-func (m *Mirror) ResetSources() {
+func (m *Mirror) ResetSources() *Mirror {
 	m.parser.Reset()
+	return m
 }
 
 // AddTarget() adds a target to the list of targets to generate code for
@@ -90,12 +94,15 @@ func (m *Mirror) AddTarget(t types.TargetInterface) *Mirror {
 }
 
 // SetParser() overrides the default parser with a custom parser or any other parser that implements the ParserInterface
-func (m *Mirror) SetParser(p types.ParserInterface) {
+func (m *Mirror) SetParser(p types.ParserInterface) *Mirror {
 	p.SetConfig(parser.Config{
 		FlattenEmbeddedStructs: m.config.FlattenEmbeddedStructs,
 		EnableCaching:          m.config.EnableParserCache,
 	})
+
 	m.parser = p
+
+	return m
 }
 
 // GenerateAndSaveAll() generates code for all sources and saves them to the target files
