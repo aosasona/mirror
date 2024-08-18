@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path"
 	"reflect"
 	"strings"
 
@@ -207,7 +208,7 @@ func (m *Mirror) GenerateN(target types.TargetInterface, n int) (string, error) 
 
 // SaveToFile saves the generated code to the target file
 func (m *Mirror) SaveToFile(target types.TargetInterface, code string) error {
-	file, err := os.Create(target.Path())
+	file, err := os.Create(path.Join(target.Path(), target.Name()))
 	if err != nil {
 		return err
 	}
