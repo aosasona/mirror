@@ -19,6 +19,11 @@ type CacheValue struct {
 	Item    *Item
 }
 
+type Config struct {
+	EnableCaching          bool
+	FlattenEmbeddedStructs bool
+}
+
 type Parser struct {
 	sources []reflect.Type
 	cache   map[string]CacheValue
@@ -37,6 +42,20 @@ func New() *Parser {
 	}
 }
 
+// Reset the parser to its initial state
+func (p *Parser) Reset() {
+	p.sources = make([]reflect.Type, 0)
+	p.cache = make(map[string]CacheValue)
+}
+
+// Set the parser's configuration
+func (p *Parser) SetConfig(config Config) error {
+	p.enableCaching = config.EnableCaching
+	p.flattenEmbeddedStructs = config.FlattenEmbeddedStructs
+
+	return nil
+}
+
 // Lookup a source by name, returns the source and a boolean indicating if the source was found
 func (p *Parser) LookupByName(name string) (Item, bool) {
 	for _, source := range p.sources {
@@ -51,11 +70,6 @@ func (p *Parser) LookupByName(name string) (Item, bool) {
 	}
 
 	return nil, false
-}
-
-// Reset the parser
-func (p *Parser) Reset() {
-	p.sources = make([]reflect.Type, 0)
 }
 
 // Get the sources to parse

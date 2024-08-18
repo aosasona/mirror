@@ -34,6 +34,12 @@ type ParserInterface interface {
 
 	// Count the number of sources left to parse
 	Count() int
+
+	// Set the parser's configuration
+	SetConfig(parser.Config) error
+
+	// Reset the parser to its initial state
+	Reset()
 }
 
 // A general language interface to make it harder to pass in a wrong language or extend the built-in languages and backends in the future
@@ -57,7 +63,7 @@ type TargetInterface interface {
 	// Add a custom type to the target
 	AddCustomType(string, string)
 
-	// Create and return a new instance of the langyuage's generator based on the target's config
+	// Create and return a new instance of the language's generator based on the target's config
 	Generator() GeneratorInterface
 
 	// Unique identifier for the target
@@ -90,5 +96,3 @@ type GeneratorInterface interface {
 	// This is mostly useful for testing purposes
 	SetNonStrict(bool)
 }
-
-var _ ParserInterface = &parser.Parser{}
