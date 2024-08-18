@@ -247,6 +247,14 @@ func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string
 
 		if field.Meta.Type != "" {
 			fieldStr += field.Meta.Type
+
+			if field.Meta.Optional || field.BaseItem.IsNullable() {
+				if g.config.PreferNullForNullable {
+					fieldStr += " | null"
+				} else {
+					fieldStr += " | undefined"
+				}
+			}
 		} else {
 			if !g.config.InlineObjects && field.BaseItem.Type() == parser.TypeStruct {
 				if !g.referenceExists(field.BaseItem.Name()) {
