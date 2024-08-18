@@ -1,4 +1,4 @@
-package parser
+package mirrorparser
 
 import (
 	"reflect"
@@ -8,11 +8,11 @@ import (
 )
 
 type TestStruct struct {
-	Name        string   `json:"fname,omitempty" ts:"name:first_name"`
-	LastName    string   `json:"last_name"`
+	Name        string   `ts:"name:first_name"`
+	LastName    string   `mirror:"name:last_name"`
 	Invalid     string   `mirror:"name:,random_opt"`
 	Phone       string   `mirror:"name:phone_number,optional:true"`
-	BMI         string   `json:"bmi" mirror:"-"`
+	BMI         string   `mirror:"-"`
 	NextOfKin   string   `mirror:"name:next_of_kin,skip:true"`
 	Connections []string `mirror:"name:connected_ids, type:Array<string>, optional:true"`
 }
@@ -41,13 +41,13 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		WantErr  bool
 	}{
 		{
-			Name:   "parse json and ts tags and make json tag the original name",
+			Name:   "properly parse tag using v1.0 ts tag",
 			Source: nameField,
 			Expected: &tag.Tag{
 				OriginalName: "Name",
 				Name:         "first_name",
 				Skip:         false,
-				Optional:     true,
+				Optional:     false,
 			},
 		},
 		{
@@ -85,7 +85,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 			Source: bmiField,
 			Expected: &tag.Tag{
 				OriginalName: "BMI",
-				Name:         "bmi",
+				Name:         "BMI",
 				Skip:         true,
 				Optional:     false,
 			},

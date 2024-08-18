@@ -1,5 +1,5 @@
 test:
-  go test ./...
+  go test ./v2/...
 
 example:
-  go run ./examples
+  go run ./v2/examples
