@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"database/sql"
 	"encoding/base64"
 	"fmt"
 	"reflect"
+	"time"
 
 	"go.trulyao.dev/mirror/extractor"
 	"go.trulyao.dev/mirror/extractor/meta"
@@ -260,7 +262,12 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 		item, err = p.parseMap(source, nullable)
 
 	case reflect.Struct:
-		item, err = p.parseStruct(source, nullable)
+		// Attempt to parse exempted structs like `sql.NullX` types
+		item, err = p.parseExemptedStructs(source, nullable)
+		if err != nil {
+			// If it is not an exempted struct, parse it as a regular struct
+			item, err = p.parseStruct(source, nullable)
+		}
 
 	case reflect.Array, reflect.Slice:
 		item, err = p.parseList(source, nullable)
@@ -309,6 +316,53 @@ func (p *Parser) parseField(field reflect.StructField) (meta.Meta, error) {
 	}
 
 	return *mirrorMeta, nil
+}
+
+// Parse exempted structs like `sql.NullX` types and other built-in types
+// TODO: add support for more exempted structs
+func (p *Parser) parseExemptedStructs(source reflect.Type, nullable bool) (Item, error) {
+	switch {
+	case source == reflect.TypeOf(time.Time{}):
+		return Scalar{source.Name(), TypeTimestamp, nullable}, nil
+
+	case source == reflect.TypeOf(time.Duration(0)):
+		return Scalar{source.Name(), TypeInteger, nullable}, nil
+
+	case source == reflect.TypeOf([]byte{}):
+		return Scalar{source.Name(), TypeString, nullable}, nil
+
+	case source == reflect.TypeOf([]interface{}{}):
+		return List{
+			ItemName: source.Name(),
+			BaseItem: Scalar{"any", TypeAny, nullable},
+			Nullable: nullable,
+		}, nil
+
+	// SQL types
+	case source == reflect.TypeOf(sql.NullBool{}):
+		return Scalar{source.Name(), TypeBoolean, true}, nil
+
+	case source == reflect.TypeOf(sql.NullFloat64{}):
+		return Scalar{source.Name(), TypeFloat, true}, nil
+
+	case
+		source == reflect.TypeOf(sql.NullInt64{}),
+		source == reflect.TypeOf(sql.NullInt32{}),
+		source == reflect.TypeOf(sql.NullInt16{}):
+		return Scalar{source.Name(), TypeInteger, true}, nil
+
+	case source == reflect.TypeOf(sql.NullString{}):
+		return Scalar{source.Name(), TypeString, true}, nil
+
+	case source == reflect.TypeOf(sql.NullTime{}):
+		return Scalar{source.Name(), TypeTimestamp, true}, nil
+
+	case source == reflect.TypeOf(sql.NullByte{}):
+		return Scalar{source.Name(), TypeByte, true}, nil
+
+	default:
+		return nil, fmt.Errorf("not implemented for %s", source.Name())
+	}
 }
 
 // Parse a struct type
@@ -422,23 +476,6 @@ func (p *Parser) parseInterface(source reflect.Type, nullable bool) (Item, error
 		return Scalar{source.Name(), TypeAny, nullable}, nil
 	case "error":
 		return Scalar{source.Name(), TypeString, nullable}, nil
-	case "time.Time":
-		return Scalar{source.Name(), TypeTimestamp, nullable}, nil
-
-	// There isn't a good way to force the parser to parse a `sql.NullX` type as a scalar instead of structs (users can have the same name for their structs and the `sql` package structs)
-	// But if they are ever passed as interfaces _somehow_, we can handle them here
-	case "sql.NullString":
-		return Scalar{source.Name(), TypeString, true}, nil
-	case "sql.NullInt64", "sql.NullInt32", "sql.NullInt16":
-		return Scalar{source.Name(), TypeInteger, true}, nil
-	case "sql.NullFloat64":
-		return Scalar{source.Name(), TypeFloat, true}, nil
-	case "sql.NullBool":
-		return Scalar{source.Name(), TypeBoolean, true}, nil
-	case "sql.NullTime":
-		return Scalar{source.Name(), TypeTimestamp, true}, nil
-	case "sql.NullByte":
-		return Scalar{source.Name(), TypeByte, true}, nil
 	default:
 		return nil, fmt.Errorf("not implemented for %s", source.Name())
 	}

@@ -1,8 +1,10 @@
 package parser
 
 import (
+	"database/sql"
 	"reflect"
 	"testing"
+	"time"
 
 	"go.trulyao.dev/mirror/extractor/meta"
 )
@@ -666,6 +668,74 @@ func Test_ParseEmbeddedStruct(t *testing.T) {
 					},
 				},
 			},
+		},
+	}
+
+	runTests(t, tests)
+}
+
+func Test_ParseBuiltInTypes(t *testing.T) {
+	type (
+		TimeSlice []time.Time
+		TimeArray [3]time.Time
+	)
+	tests := []Test{
+		{
+			Description: "parse time.Time",
+			Source:      time.Time{},
+			Expected:    Scalar{"Time", TypeTimestamp, false},
+		},
+
+		{
+			Description: "parse nullable time.Time",
+			Source:      &time.Time{},
+			Expected:    Scalar{"Time", TypeTimestamp, true},
+		},
+
+		{
+			Description: "parse []time.Time",
+			Source:      TimeSlice{},
+			Expected: List{
+				"TimeSlice",
+				Scalar{"Time", TypeTimestamp, false},
+				false,
+				EmptyLength,
+			},
+		},
+
+		{
+			Description: "parse []time.Time",
+			Source:      &TimeArray{},
+			Expected: List{
+				"TimeArray",
+				Scalar{"Time", TypeTimestamp, false},
+				true,
+				3,
+			},
+		},
+
+		{
+			Description: "parse time.Duration",
+			Source:      time.Duration(0),
+			Expected:    Scalar{"Duration", TypeInteger, false},
+		},
+
+		{
+			Description: "parse nullable time.Duration",
+			Source:      new(time.Duration),
+			Expected:    Scalar{"Duration", TypeInteger, true},
+		},
+
+		{
+			Description: "parse sql.NullTime",
+			Source:      sql.NullTime{},
+			Expected:    Scalar{"NullTime", TypeTimestamp, true},
+		},
+
+		{
+			Description: "parse sql.NullInt64",
+			Source:      sql.NullInt64{},
+			Expected:    Scalar{"NullInt64", TypeInteger, true},
 		},
 	}
 
