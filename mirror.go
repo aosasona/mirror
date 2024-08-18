@@ -185,7 +185,7 @@ func (m *Mirror) GenerateforTarget(target types.TargetInterface) (string, error)
 		return "", err
 	}
 
-	return target.Header() + "\n\n" + strings.Join(generatedTypes, "\n\n"), nil
+	return target.Header() + "\n" + strings.Join(generatedTypes, "\n\n"), nil
 }
 
 // GenerateN generates code for the nth element in the parsed items list

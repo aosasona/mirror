@@ -35,7 +35,7 @@ type Person struct {
 	CreatedAt time.Time      `mirror:"name:created_at"`
 	UpdatedAt *time.Time     `mirror:"name:updated_at,type:number"`
 	DeletedAt *time.Time     `mirror:"name:deleted_at"`
-	IsActive  bool           `ts:"name:is_active"` // using deprecated `ts` tag
+	IsActive  bool           `                                     ts:"name:is_active"` // using deprecated `ts` tag
 }
 
 type CreateUserFunc func(p Person) error
