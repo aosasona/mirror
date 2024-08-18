@@ -3,9 +3,9 @@ package extractor
 import (
 	"reflect"
 
-	jsonmeta "go.trulyao.dev/mirror/extractor/json"
-	"go.trulyao.dev/mirror/extractor/meta"
-	mirrormeta "go.trulyao.dev/mirror/extractor/mirror"
+	jsonmeta "go.trulyao.dev/mirror/v2/extractor/json"
+	"go.trulyao.dev/mirror/v2/extractor/meta"
+	mirrormeta "go.trulyao.dev/mirror/v2/extractor/mirror"
 )
 
 // ExtractJSONMeta extracts meta information from a field with the `json` tag

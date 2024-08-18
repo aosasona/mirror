@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"go.trulyao.dev/mirror/extractor/meta"
+	"go.trulyao.dev/mirror/v2/extractor/meta"
 )
 
 type Test struct {

@@ -1,6 +1,6 @@
 # Mirror 🪞
 
-[![Go Reference](https://pkg.go.dev/badge/go.trulyao.dev/mirror.svg)](https://pkg.go.dev/go.trulyao.dev/mirror)
+[![Go Reference](https://pkg.go.dev/badge/go.trulyao.dev/mirror/v2.svg)](https://pkg.go.dev/go.trulyao.dev/mirror/v2)
 
 > [!WARNING]
 > This documentation is a work-in-progress and will be updated as required, if you are unclear if mirror supports your usecase or how to do something, please have a look at the GoDocs or open an issue.
@@ -12,7 +12,7 @@ Mirror allows you to generate types for other languages using your existing Go t
 Mirror can be installed directly using the command below:
 
 ```sh
-go get go.trulyao.dev/mirror@latest
+go get go.trulyao.dev/mirror/v2@latest
 ```
 
 ## Usage
@@ -26,10 +26,10 @@ import (
 	"fmt"
 	"time"
 
-	"go.trulyao.dev/mirror"
-	"go.trulyao.dev/mirror/config"
-	"go.trulyao.dev/mirror/generator/typescript"
-	"go.trulyao.dev/mirror/parser"
+	"go.trulyao.dev/mirror/v2"
+	"go.trulyao.dev/mirror/v2/config"
+	"go.trulyao.dev/mirror/v2/generator/typescript"
+	"go.trulyao.dev/mirror/v2/parser"
 )
 
 type Language string

@@ -9,10 +9,10 @@ import (
 	"reflect"
 	"strings"
 
-	"go.trulyao.dev/mirror/config"
-	"go.trulyao.dev/mirror/generator/typescript"
-	"go.trulyao.dev/mirror/parser"
-	"go.trulyao.dev/mirror/types"
+	"go.trulyao.dev/mirror/v2/config"
+	"go.trulyao.dev/mirror/v2/generator/typescript"
+	"go.trulyao.dev/mirror/v2/parser"
+	"go.trulyao.dev/mirror/v2/types"
 )
 
 type Mirror struct {

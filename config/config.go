@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"slices"
 
-	"go.trulyao.dev/mirror/types"
+	"go.trulyao.dev/mirror/v2/types"
 )
 
 type Indentation int
