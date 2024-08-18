@@ -141,6 +141,7 @@ func (g *Generator) generateBaseType(item parser.Item, nestingLevel ...int) (str
 }
 
 // GenerateAll generates all the type definitions in the parser
+// This method uses the parser's Iterate method to iterate over all the items in the parser without consuming them
 func (g *Generator) GenerateAll() ([]string, error) {
 	var types []string
 
@@ -215,6 +216,7 @@ func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string
 	var fields []string
 
 	for _, field := range item.Fields {
+		// Skip fields that are marked to be skipped so they don't appear in the generated types
 		if field.Meta.Skip {
 			continue
 		}
@@ -225,10 +227,12 @@ func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string
 			hasOptionalChar bool
 		)
 
+		// Properly indent the fields
 		for i := 0; i < nestingLevel; i++ {
 			fieldStr += g.indent
 		}
 
+		// If the field has no name, we can't generate a type for it
 		if field.ItemName == "" && field.Meta.Name == "" {
 			return "", fmt.Errorf(
 				"unable to find name for field `%s` in struct `%s`",
@@ -250,6 +254,7 @@ func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string
 
 		fieldStr += ": "
 
+		// if the field has an override type (using the `ts` or `mirror` tag), use that
 		if field.Meta.Type != "" {
 			fieldStr += field.Meta.Type
 
@@ -262,12 +267,14 @@ func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string
 			}
 		} else {
 			if !g.config.InlineObjects && field.BaseItem.Type() == parser.TypeStruct {
+				// Ensure the referenced type exists before proceeding - this is only necessary if inline objects are disabled since we don't want to reference a type that doesn't exist
 				if !g.referenceExists(field.BaseItem.Name()) {
 					return "", fmt.Errorf("referenced type `%s` does not exist, you need to either enable inline objects or pass in the referenced type", field.BaseItem.Name())
 				}
 
 				fieldStr += field.BaseItem.Name()
 			} else {
+				// Generate the base type for the field
 				generatedType, err := g.generateBaseType(field.BaseItem, nestingLevel+1)
 				if err != nil {
 					return "", err
@@ -308,6 +315,8 @@ func (g *Generator) generateList(item parser.List) (string, error) {
 	}
 
 	var baseType string
+
+	// Scalar types are expanded to their types (e.g. string, number, etc) by default
 	if item.BaseItem.IsScalar() {
 		if baseType, err = g.generateScalar(item.BaseItem.(parser.Scalar)); err != nil {
 			return "", err
@@ -325,10 +334,12 @@ func (g *Generator) generateList(item parser.List) (string, error) {
 			}
 		}
 	} else {
+		// Ensure the referenced type exists before proceeding
 		if !g.referenceExists(item.BaseItem.Name()) {
 			return "", fmt.Errorf("referenced type `%s` does not exist, you need to either enable inline objects or pass in the referenced type", item.BaseItem.Name())
 		}
 
+		// If inline objects are enabled, generate the base type for the item
 		baseType = item.BaseItem.Name()
 		if g.config.InlineObjects {
 			if baseType, err = g.generateBaseType(item.BaseItem); err != nil {
@@ -379,6 +390,7 @@ func (g *Generator) generateFunction(item parser.Function) (string, error) {
 	for idx, param := range item.Params {
 		var paramStr string
 
+		// Scalar types are always expanded to their types (e.g. string, number, etc) by default
 		if g.config.InlineObjects || param.IsScalar() {
 			if paramStr, err = g.generateBaseType(param); err != nil {
 				return "", err

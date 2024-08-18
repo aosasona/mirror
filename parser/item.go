@@ -16,6 +16,7 @@ const (
 	TypeByte      Type = "byte"
 	TypeTimestamp Type = "datetime"
 
+	// Collection types
 	TypeStruct Type = "struct"
 	TypeList   Type = "list"
 	TypeArray  Type = "array"
@@ -33,7 +34,7 @@ type Item interface {
 	IsNullable() bool
 }
 
-// Representing a field in a struct
+// Represents a field in a struct
 type Field struct {
 	ItemName string
 	BaseItem Item
@@ -57,6 +58,7 @@ type Scalar struct {
 // Represents a list type; array or slice
 const EmptyLength = -1 // used to represent a slice
 
+// Represents a list (array or slice) type
 type List struct {
 	ItemName string
 	BaseItem Item

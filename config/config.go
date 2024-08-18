@@ -56,6 +56,7 @@ func DefaultConfig() *Config {
 	}
 }
 
+// AddTarget() adds a target to the list of targets
 func (c *Config) AddTarget(target types.TargetInterface) *Config {
 	// Targets cannot be empty
 	if target == nil {
@@ -75,6 +76,7 @@ func (c *Config) AddTarget(target types.TargetInterface) *Config {
 	return nil
 }
 
+// AddTargets() adds multiple targets to the list of targets
 func (c *Config) AddTargets(t ...types.TargetInterface) {
 	c.Targets = append(c.Targets, t...)
 }

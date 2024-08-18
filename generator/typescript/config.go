@@ -9,6 +9,7 @@ import (
 	"go.trulyao.dev/mirror/types"
 )
 
+// Config is the configuration for the typescript generator, it also implements the types.TargetInterface and is used to define a Typescript target
 type Config struct {
 	// FileName is the name of the generated file
 	FileName string
@@ -40,6 +41,7 @@ type Config struct {
 	// Prefix is the prefix to add to the generated types (e.g. type Person -> type MyPrefixPerson)
 	TypePrefix string
 
+	// TODO: implement custom types support
 	customTypes map[string]string
 }
 
@@ -174,6 +176,7 @@ func (c *Config) Generator() types.GeneratorInterface {
 	return NewGenerator(c)
 }
 
+// Validate() checks if the config is valid and passes as a valid target
 func (c *Config) Validate() error {
 	if c.FileName == "" {
 		return errors.New("no file name provided")
