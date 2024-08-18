@@ -1,7 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"time"
+
+	"go.trulyao.dev/mirror"
+	"go.trulyao.dev/mirror/config"
+	"go.trulyao.dev/mirror/generator/typescript"
+	"go.trulyao.dev/mirror/parser"
 )
 
 type Language string
@@ -27,30 +33,65 @@ type Person struct {
 	Grades    map[string]int `mirror:"name:grades,optional:1"`
 	Tags      Tags           `mirror:"name:tags"`
 	CreatedAt time.Time      `mirror:"name:created_at"`
-	UpdatedAt *time.Time     `mirror:"name:updated_at"`
+	UpdatedAt *time.Time     `mirror:"name:updated_at,type:number"`
 	DeletedAt *time.Time     `mirror:"name:deleted_at"`
 	IsActive  bool           `ts:"name:is_active"` // using deprecated `ts` tag
 }
 
+type CreateUserFunc func(p Person) error
+
+type Time int
+
 func main() {
-	// start := time.Now()
-	// gt := mirror.New(config.Config{
-	// 	Enabled: true,
-	// })
-	//
-	// gt.AddSources(*new(Language), Tags{}, Person{})
-	//
-	// // t := typescript.New("example.ts", ".")
-	//
-	// defer func(count int) {
-	// 	fmt.Printf("Generated %d types in %s\n", count, time.Since(start))
-	// }(gt.Count())
-	//
-	// err := gt.GenerateAll()
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
+	start := time.Now()
+
+	m := mirror.New(config.Config{
+		Enabled:                true,
+		FlattenEmbeddedStructs: false,
+	})
+
+	m.AddSources(*new(Language), *new(Time), Address{}, Tags{}, Person{}, CreateUserFunc(nil))
+
+	defaultTS := typescript.DefaultConfig().
+		SetFileName("default.ts").
+		SetOutputPath("./examples")
+
+	inlinedTS := typescript.DefaultConfig().
+		SetFileName("inlined.ts").
+		SetOutputPath("./examples").
+		SetInlineObjects(true).
+		SetPrefix("Inline_")
+
+	m.AddTarget(defaultTS).AddTarget(inlinedTS)
+
+	err := m.GenerateAndSaveAll()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Flatten embedded structs
+	newParser := parser.New()
+	flattenedTS := typescript.DefaultConfig().
+		SetFileName("flattened"). // no extension
+		SetOutputPath("./examples").
+		SetPrefix("Flattened_")
+
+	m.ResetTargets().
+		SetParser(newParser).
+		AddTarget(flattenedTS).
+		AddSources(*new(Language), *new(Time), Tags{}, Person{}, CreateUserFunc(nil))
+
+	newParser.SetConfig(parser.Config{
+		EnableCaching:          true,
+		FlattenEmbeddedStructs: true,
+	})
+
+	err = m.GenerateAndSaveAll()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Printf("Generated %d types in %s\n", m.Count(), time.Since(start))
 }
 
 // Output:
