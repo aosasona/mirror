@@ -94,6 +94,20 @@ func (g *Generator) GenerateItem(item parser.Item) (string, error) {
 	return fmt.Sprintf(typeString, typeName, baseType), nil
 }
 
+// GenerateItemType generate ONLY the type definition for an item (e.g. "string", "{ foo: Bar, ...}")
+func (g *Generator) GenerateItemType(item parser.Item) (string, error) {
+	var (
+		itemType string
+		err      error
+	)
+
+	if itemType, err = g.generateBaseType(item); err != nil {
+		return "", err
+	}
+
+	return itemType, nil
+}
+
 // generateBaseType generates the base type for the item without any additional information
 // For example, a scalar type will return `string` or `number` while a list will return `string[]` or `Array<string>`, this is then used by `GenerateItem` to generate the full type definition
 func (g *Generator) generateBaseType(item parser.Item, nestingLevel ...int) (string, error) {

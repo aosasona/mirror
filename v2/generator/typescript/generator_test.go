@@ -649,6 +649,118 @@ func Test_GenerateFunc(t *testing.T) {
 	runTests(t, tests)
 }
 
+func Test_GenerateItemType(t *testing.T) {
+	tests := []Test{
+		{
+			Description: "generate function with function return",
+			Src: parser.Function{
+				ItemName: "FuncReturnFunc",
+				Params:   []parser.Item{},
+				Returns: []parser.Item{
+					parser.Function{
+						ItemName: "InnerFunc",
+						Params:   []parser.Item{},
+						Returns:  []parser.Item{},
+					},
+				},
+			},
+			Expect: "() => (() => void)",
+			Config: typescript.Config{
+				InludeSemiColon: true,
+			},
+		},
+
+		{
+			Description: "generate integer|null array WITHOUT generic array syntax",
+			Src: parser.List{
+				ItemName: "NullIntArray",
+				BaseItem: parser.Scalar{
+					ItemName: "Int",
+					ItemType: parser.TypeInteger,
+					Nullable: true,
+				},
+				Nullable: false,
+			},
+			Expect: "(number | null)[]",
+			Config: typescript.Config{
+				PreferArrayGeneric:    false,
+				InludeSemiColon:       true,
+				PreferNullForNullable: true,
+			},
+		},
+
+		{
+			Description: "generate object array",
+			Src: parser.List{
+				ItemName: "IntArray",
+				BaseItem: parser.Struct{
+					ItemName: "Foo",
+					Fields:   []parser.Field{},
+					Nullable: false,
+				},
+				Nullable: true,
+			},
+			Expect: "Array<Foo> | undefined",
+			Config: typescript.Config{
+				PreferArrayGeneric: true,
+				InludeSemiColon:    true,
+			},
+		},
+
+		{
+			Description: "generare map with two nested maps (NO INLINING)",
+			Src: parser.Map{
+				ItemName: "FooMap",
+				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value: parser.List{
+					ItemName: "MapArray",
+					BaseItem: parser.Map{
+						ItemName: "NestedMap",
+						Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+						Value: parser.Map{
+							ItemName: "InnerNestedMap",
+							Key: parser.Scalar{
+								ItemName: "string",
+								ItemType: parser.TypeString,
+							},
+							Value: parser.Scalar{
+								ItemName: "integer",
+								ItemType: parser.TypeInteger,
+							},
+						},
+					},
+				},
+				Nullable: false,
+			},
+
+			Expect: "Record<string, Array<NestedMap>>",
+			Config: typescript.Config{
+				InludeSemiColon:    true,
+				PreferArrayGeneric: true,
+				InlineObjects:      false,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		gen := typescript.NewGenerator(&test.Config)
+		gen.SetNonStrict(true)
+
+		got, err := gen.GenerateItemType(test.Src)
+		if err != nil {
+			if !test.WantErr {
+				t.Errorf("[%s] unexpected error: %v", test.Description, err)
+			}
+
+			continue
+		}
+
+		if got != test.Expect {
+			t.Errorf("[%s] expected %q, got %q", test.Description, test.Expect, got)
+		}
+	}
+}
+
 func runTests(t *testing.T, tests []Test) {
 	for _, test := range tests {
 		gen := typescript.NewGenerator(&test.Config)
