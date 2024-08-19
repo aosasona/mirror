@@ -92,8 +92,11 @@ type GeneratorInterface interface {
 	// Generate all types in one go
 	GenerateAll() ([]string, error)
 
-	// Generate a single item
+	// Generate a single item's declaration as a fully qualified export (e.g. "export type ...")
 	GenerateItem(parser.Item) (string, error)
+
+	// Generate the base type for the item, unlike `GenerateItem`, this will only return the type with no "export type ...", semicolons or anything extra
+	GenerateItemType(parser.Item) (string, error)
 
 	// Sets whether or not to use strict mode - this is enabled by default for all built-in generators
 	// This is mostly useful for testing purposes
