@@ -1,3 +1,7 @@
+# 2.1.1
+
+- Added new `GenerateItemType` method on generator interface to generate pure types instead of full exported declarations
+
 # v2.0.0
 
 - Full rewrite to support pluggable "backends"
