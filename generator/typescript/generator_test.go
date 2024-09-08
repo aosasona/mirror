@@ -24,7 +24,7 @@ func Test_GenerateScalar(t *testing.T) {
 	tests := []Test{
 		{
 			Description: "generate string",
-			Src: parser.Scalar{
+			Src: &parser.Scalar{
 				ItemName: "FooString",
 				ItemType: parser.TypeString,
 				Nullable: false,
@@ -34,7 +34,7 @@ func Test_GenerateScalar(t *testing.T) {
 		},
 		{
 			Description: "generate nullable string",
-			Src: parser.Scalar{
+			Src: &parser.Scalar{
 				ItemName: "NullableString",
 				ItemType: parser.TypeString,
 				Nullable: true,
@@ -44,7 +44,7 @@ func Test_GenerateScalar(t *testing.T) {
 		},
 		{
 			Description: "generate integer",
-			Src: parser.Scalar{
+			Src: &parser.Scalar{
 				ItemName: "FooInt",
 				ItemType: parser.TypeInteger,
 				Nullable: false,
@@ -54,7 +54,7 @@ func Test_GenerateScalar(t *testing.T) {
 		},
 		{
 			Description: "generate nullable integer",
-			Src: parser.Scalar{
+			Src: &parser.Scalar{
 				ItemName: "NullableInt",
 				ItemType: parser.TypeInteger,
 				Nullable: true,
@@ -71,9 +71,9 @@ func Test_GenerateArray(t *testing.T) {
 	tests := []Test{
 		{
 			Description: "generate nullable integer array",
-			Src: parser.List{
+			Src: &parser.List{
 				ItemName: "IntArray",
-				BaseItem: parser.Scalar{
+				BaseItem: &parser.Scalar{
 					ItemName: "Int",
 					ItemType: parser.TypeInteger,
 					Nullable: false,
@@ -90,9 +90,9 @@ func Test_GenerateArray(t *testing.T) {
 
 		{
 			Description: "generate integer|null array WITH generic array syntax",
-			Src: parser.List{
+			Src: &parser.List{
 				ItemName: "NullIntArray",
-				BaseItem: parser.Scalar{
+				BaseItem: &parser.Scalar{
 					ItemName: "Int",
 					ItemType: parser.TypeInteger,
 					Nullable: true,
@@ -109,9 +109,9 @@ func Test_GenerateArray(t *testing.T) {
 
 		{
 			Description: "generate integer|null array WITHOUT generic array syntax",
-			Src: parser.List{
+			Src: &parser.List{
 				ItemName: "NullIntArray",
-				BaseItem: parser.Scalar{
+				BaseItem: &parser.Scalar{
 					ItemName: "Int",
 					ItemType: parser.TypeInteger,
 					Nullable: true,
@@ -128,9 +128,9 @@ func Test_GenerateArray(t *testing.T) {
 
 		{
 			Description: "generate object array",
-			Src: parser.List{
+			Src: &parser.List{
 				ItemName: "IntArray",
-				BaseItem: parser.Struct{
+				BaseItem: &parser.Struct{
 					ItemName: "Foo",
 					Fields:   []parser.Field{},
 					Nullable: false,
@@ -152,12 +152,12 @@ func Test_GenerateStruct(t *testing.T) {
 	tests := []Test{
 		{
 			Description: "generate struct",
-			Src: parser.Struct{
+			Src: &parser.Struct{
 				ItemName: "Foo",
 				Fields: []parser.Field{
 					{
 						ItemName: "Bar",
-						BaseItem: parser.Scalar{
+						BaseItem: &parser.Scalar{
 							ItemName: "Baz",
 							ItemType: parser.TypeString,
 							Nullable: false,
@@ -177,12 +177,12 @@ func Test_GenerateStruct(t *testing.T) {
 
 		{
 			Description: "generate struct with inline objects and string field (tab indentation)",
-			Src: parser.Struct{
+			Src: &parser.Struct{
 				ItemName: "Foo",
 				Fields: []parser.Field{
 					{
 						ItemName: "Bar",
-						BaseItem: parser.Scalar{
+						BaseItem: &parser.Scalar{
 							ItemName: "Baz",
 							ItemType: parser.TypeString,
 							Nullable: false,
@@ -202,17 +202,17 @@ func Test_GenerateStruct(t *testing.T) {
 
 		{
 			Description: "generate struct with struct fields and inlining disabled",
-			Src: parser.Struct{
+			Src: &parser.Struct{
 				ItemName: "Foo",
 				Fields: []parser.Field{
 					{
 						ItemName: "Bar",
-						BaseItem: parser.Struct{
+						BaseItem: &parser.Struct{
 							ItemName: "Baz",
 							Fields: []parser.Field{
 								{
 									ItemName: "Qux",
-									BaseItem: parser.Scalar{
+									BaseItem: &parser.Scalar{
 										ItemName: "Quux",
 										ItemType: parser.TypeString,
 									},
@@ -233,17 +233,17 @@ func Test_GenerateStruct(t *testing.T) {
 
 		{
 			Description: "generate struct with struct fields and inlining ENABLED",
-			Src: parser.Struct{
+			Src: &parser.Struct{
 				ItemName: "Foo",
 				Fields: []parser.Field{
 					{
 						ItemName: "Bar",
-						BaseItem: parser.Struct{
+						BaseItem: &parser.Struct{
 							ItemName: "Baz",
 							Fields: []parser.Field{
 								{
 									ItemName: "Qux",
-									BaseItem: parser.Scalar{
+									BaseItem: &parser.Scalar{
 										ItemName: "Quux",
 										ItemType: parser.TypeInteger,
 									},
@@ -264,14 +264,14 @@ func Test_GenerateStruct(t *testing.T) {
 
 		{
 			Description: "generate struct with array field (NO INLINING)",
-			Src: parser.Struct{
+			Src: &parser.Struct{
 				ItemName: "Foo",
 				Fields: []parser.Field{
 					{
 						ItemName: "Bar",
-						BaseItem: parser.List{
+						BaseItem: &parser.List{
 							ItemName: "Baz",
-							BaseItem: parser.Scalar{
+							BaseItem: &parser.Scalar{
 								ItemName: "",
 								ItemType: parser.TypeBoolean,
 							},
@@ -297,10 +297,10 @@ func Test_GenerateMap(t *testing.T) {
 	tests := []Test{
 		{
 			Description: "generate map with string key and integer value",
-			Src: parser.Map{
+			Src: &parser.Map{
 				ItemName: "FooMap",
-				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-				Value:    parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
+				Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value:    &parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
 				Nullable: false,
 			},
 			Expect: "export type FooMap = Record<string, number>;",
@@ -311,10 +311,10 @@ func Test_GenerateMap(t *testing.T) {
 
 		{
 			Description: "generate nullable map with string key and integer value",
-			Src: parser.Map{
+			Src: &parser.Map{
 				ItemName: "FooMap",
-				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-				Value:    parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
+				Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value:    &parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
 				Nullable: true,
 			},
 			Expect: "export type FooMap = Record<string, number> | null;",
@@ -326,10 +326,10 @@ func Test_GenerateMap(t *testing.T) {
 
 		{
 			Description: "generate map with string key and nullable string value",
-			Src: parser.Map{
+			Src: &parser.Map{
 				ItemName: "FooMapWithNullableValue",
-				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-				Value: parser.Scalar{
+				Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value: &parser.Scalar{
 					ItemName: "string",
 					ItemType: parser.TypeString,
 					Nullable: true,
@@ -345,28 +345,28 @@ func Test_GenerateMap(t *testing.T) {
 
 		{
 			Description: "generate map with non-scalar key",
-			Src: parser.Map{
+			Src: &parser.Map{
 				ItemName: "FooMap",
-				Key: parser.Struct{
+				Key: &parser.Struct{
 					ItemName: "Foo",
 					Fields:   []parser.Field{},
 				},
-				Value: parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
+				Value: &parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
 			},
 			WantErr: true,
 		},
 
 		{
 			Description: "generare map with nested map value (NO INLINING)",
-			Src: parser.Map{
+			Src: &parser.Map{
 				ItemName: "FooMap",
-				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-				Value: parser.List{
+				Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value: &parser.List{
 					ItemName: "MapArray",
-					BaseItem: parser.Map{
+					BaseItem: &parser.Map{
 						ItemName: "NestedMap",
-						Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-						Value:    parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
+						Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+						Value:    &parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
 					},
 				},
 				Nullable: false,
@@ -381,15 +381,15 @@ func Test_GenerateMap(t *testing.T) {
 
 		{
 			Description: "generare map with nested map value (INLINING ENABLED)",
-			Src: parser.Map{
+			Src: &parser.Map{
 				ItemName: "FooMap",
-				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-				Value: parser.List{
+				Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value: &parser.List{
 					ItemName: "MapArray",
-					BaseItem: parser.Map{
+					BaseItem: &parser.Map{
 						ItemName: "NestedMap",
-						Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-						Value:    parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
+						Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+						Value:    &parser.Scalar{ItemName: "integer", ItemType: parser.TypeInteger},
 					},
 				},
 				Nullable: false,
@@ -405,21 +405,21 @@ func Test_GenerateMap(t *testing.T) {
 
 		{
 			Description: "generare map with two nested maps (INLINING ENABLED)",
-			Src: parser.Map{
+			Src: &parser.Map{
 				ItemName: "FooMap",
-				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-				Value: parser.List{
+				Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value: &parser.List{
 					ItemName: "MapArray",
-					BaseItem: parser.Map{
+					BaseItem: &parser.Map{
 						ItemName: "NestedMap",
-						Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-						Value: parser.Map{
+						Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+						Value: &parser.Map{
 							ItemName: "InnerNestedMap",
-							Key: parser.Scalar{
+							Key: &parser.Scalar{
 								ItemName: "string",
 								ItemType: parser.TypeString,
 							},
-							Value: parser.Scalar{
+							Value: &parser.Scalar{
 								ItemName: "integer",
 								ItemType: parser.TypeInteger,
 							},
@@ -439,21 +439,21 @@ func Test_GenerateMap(t *testing.T) {
 
 		{
 			Description: "generare map with two nested maps (NO INLINING)",
-			Src: parser.Map{
+			Src: &parser.Map{
 				ItemName: "FooMap",
-				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-				Value: parser.List{
+				Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value: &parser.List{
 					ItemName: "MapArray",
-					BaseItem: parser.Map{
+					BaseItem: &parser.Map{
 						ItemName: "NestedMap",
-						Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-						Value: parser.Map{
+						Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+						Value: &parser.Map{
 							ItemName: "InnerNestedMap",
-							Key: parser.Scalar{
+							Key: &parser.Scalar{
 								ItemName: "string",
 								ItemType: parser.TypeString,
 							},
-							Value: parser.Scalar{
+							Value: &parser.Scalar{
 								ItemName: "integer",
 								ItemType: parser.TypeInteger,
 							},
@@ -479,7 +479,7 @@ func Test_GenerateFunc(t *testing.T) {
 	tests := []Test{
 		{
 			Description: "generate function with no params or returns",
-			Src: parser.Function{
+			Src: &parser.Function{
 				ItemName: "VoidFunc",
 				Params:   []parser.Item{},
 				Returns:  []parser.Item{},
@@ -493,11 +493,11 @@ func Test_GenerateFunc(t *testing.T) {
 
 		{
 			Description: "generate function with no params and single returns",
-			Src: parser.Function{
+			Src: &parser.Function{
 				ItemName: "SingleReturnFunc",
 				Params:   []parser.Item{},
 				Returns: []parser.Item{
-					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+					&parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
 				},
 				Nullable: false,
 			},
@@ -509,14 +509,14 @@ func Test_GenerateFunc(t *testing.T) {
 
 		{
 			Description: "generate function with multiple params and returns",
-			Src: parser.Function{
+			Src: &parser.Function{
 				ItemName: "MultiFunc",
 				Params: []parser.Item{
-					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-					parser.Scalar{ItemName: "number", ItemType: parser.TypeInteger},
+					&parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+					&parser.Scalar{ItemName: "number", ItemType: parser.TypeInteger},
 				},
 				Returns: []parser.Item{
-					parser.Scalar{ItemName: "boolean", ItemType: parser.TypeBoolean},
+					&parser.Scalar{ItemName: "boolean", ItemType: parser.TypeBoolean},
 				},
 			},
 			Expect: "export type MultiFunc = (arg0: string, arg1: number) => boolean;",
@@ -525,15 +525,15 @@ func Test_GenerateFunc(t *testing.T) {
 
 		{
 			Description: "generate function with multiple params and multiple returns",
-			Src: parser.Function{
+			Src: &parser.Function{
 				ItemName: "MultiFunc",
 				Params: []parser.Item{
-					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-					parser.Scalar{ItemName: "number", ItemType: parser.TypeInteger},
+					&parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+					&parser.Scalar{ItemName: "number", ItemType: parser.TypeInteger},
 				},
 				Returns: []parser.Item{
-					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-					parser.Scalar{ItemName: "boolean", ItemType: parser.TypeBoolean},
+					&parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+					&parser.Scalar{ItemName: "boolean", ItemType: parser.TypeBoolean},
 				},
 			},
 			Expect:  "",
@@ -543,11 +543,11 @@ func Test_GenerateFunc(t *testing.T) {
 
 		{
 			Description: "generate function with nullable return",
-			Src: parser.Function{
+			Src: &parser.Function{
 				ItemName: "NullableReturnFunc",
 				Params:   []parser.Item{},
 				Returns: []parser.Item{
-					parser.Scalar{ItemName: "string", ItemType: parser.TypeString, Nullable: true},
+					&parser.Scalar{ItemName: "string", ItemType: parser.TypeString, Nullable: true},
 				},
 			},
 			Expect: "export type NullableReturnFunc = () => string | null;",
@@ -559,18 +559,18 @@ func Test_GenerateFunc(t *testing.T) {
 
 		{
 			Description: "generate function with nullable params",
-			Src: parser.Function{
+			Src: &parser.Function{
 				ItemName: "NullableParamFunc",
 				Params: []parser.Item{
-					parser.Scalar{ItemName: "string", ItemType: parser.TypeString, Nullable: true},
-					parser.Scalar{
+					&parser.Scalar{ItemName: "string", ItemType: parser.TypeString, Nullable: true},
+					&parser.Scalar{
 						ItemName: "number",
 						ItemType: parser.TypeInteger,
 						Nullable: false,
 					},
 				},
 				Returns: []parser.Item{
-					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+					&parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
 				},
 			},
 			Expect: "export type NullableParamFunc = (arg0: string | null, arg1: number) => string;",
@@ -582,15 +582,15 @@ func Test_GenerateFunc(t *testing.T) {
 
 		{
 			Description: "generate function with function param (INLINING ENABLED)",
-			Src: parser.Function{
+			Src: &parser.Function{
 				ItemName: "FuncParamFunc",
 				Params: []parser.Item{
-					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-					parser.Function{
+					&parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+					&parser.Function{
 						ItemName: "InnerFunc",
 						Params:   []parser.Item{},
 						Returns: []parser.Item{
-							parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+							&parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
 						},
 					},
 				},
@@ -605,15 +605,15 @@ func Test_GenerateFunc(t *testing.T) {
 
 		{
 			Description: "generate function with function param (NO INLINING)",
-			Src: parser.Function{
+			Src: &parser.Function{
 				ItemName: "FuncParamFunc",
 				Params: []parser.Item{
-					parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-					parser.Function{
+					&parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+					&parser.Function{
 						ItemName: "InnerFunc",
 						Params:   []parser.Item{},
 						Returns: []parser.Item{
-							parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+							&parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
 						},
 					},
 				},
@@ -628,11 +628,11 @@ func Test_GenerateFunc(t *testing.T) {
 
 		{
 			Description: "generate function with function return",
-			Src: parser.Function{
+			Src: &parser.Function{
 				ItemName: "FuncReturnFunc",
 				Params:   []parser.Item{},
 				Returns: []parser.Item{
-					parser.Function{
+					&parser.Function{
 						ItemName: "InnerFunc",
 						Params:   []parser.Item{},
 						Returns:  []parser.Item{},
@@ -653,11 +653,11 @@ func Test_GenerateItemType(t *testing.T) {
 	tests := []Test{
 		{
 			Description: "generate function with function return",
-			Src: parser.Function{
+			Src: &parser.Function{
 				ItemName: "FuncReturnFunc",
 				Params:   []parser.Item{},
 				Returns: []parser.Item{
-					parser.Function{
+					&parser.Function{
 						ItemName: "InnerFunc",
 						Params:   []parser.Item{},
 						Returns:  []parser.Item{},
@@ -672,9 +672,9 @@ func Test_GenerateItemType(t *testing.T) {
 
 		{
 			Description: "generate integer|null array WITHOUT generic array syntax",
-			Src: parser.List{
+			Src: &parser.List{
 				ItemName: "NullIntArray",
-				BaseItem: parser.Scalar{
+				BaseItem: &parser.Scalar{
 					ItemName: "Int",
 					ItemType: parser.TypeInteger,
 					Nullable: true,
@@ -691,9 +691,9 @@ func Test_GenerateItemType(t *testing.T) {
 
 		{
 			Description: "generate object array",
-			Src: parser.List{
+			Src: &parser.List{
 				ItemName: "IntArray",
-				BaseItem: parser.Struct{
+				BaseItem: &parser.Struct{
 					ItemName: "Foo",
 					Fields:   []parser.Field{},
 					Nullable: false,
@@ -709,21 +709,21 @@ func Test_GenerateItemType(t *testing.T) {
 
 		{
 			Description: "generare map with two nested maps (NO INLINING)",
-			Src: parser.Map{
+			Src: &parser.Map{
 				ItemName: "FooMap",
-				Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-				Value: parser.List{
+				Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+				Value: &parser.List{
 					ItemName: "MapArray",
-					BaseItem: parser.Map{
+					BaseItem: &parser.Map{
 						ItemName: "NestedMap",
-						Key:      parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
-						Value: parser.Map{
+						Key:      &parser.Scalar{ItemName: "string", ItemType: parser.TypeString},
+						Value: &parser.Map{
 							ItemName: "InnerNestedMap",
-							Key: parser.Scalar{
+							Key: &parser.Scalar{
 								ItemName: "string",
 								ItemType: parser.TypeString,
 							},
-							Value: parser.Scalar{
+							Value: &parser.Scalar{
 								ItemName: "integer",
 								ItemType: parser.TypeInteger,
 							},
