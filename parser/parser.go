@@ -12,27 +12,37 @@ import (
 	"go.trulyao.dev/mirror/v2/helper"
 )
 
-type Options struct {
-	OverrideNullable bool
-}
+type (
+	Options struct {
+		OverrideNullable bool
+	}
 
-type CacheValue struct {
-	Options Options
-	Item    *Item
-}
+	CacheValue struct {
+		Options Options
+		Item    *Item
+	}
 
-type Config struct {
-	EnableCaching          bool
-	FlattenEmbeddedStructs bool
-}
+	Config struct {
+		EnableCaching          bool
+		FlattenEmbeddedStructs bool
+	}
 
-type Parser struct {
-	sources []reflect.Type
-	cache   map[string]CacheValue
+	OnParseItemFunc func(sourceName string, target *Item) error
 
-	enableCaching          bool
-	flattenEmbeddedStructs bool
-}
+	OnParseFieldFunc func(parentType reflect.Type, originalField reflect.StructField, field *Field) error
+
+	Parser struct {
+		sources []reflect.Type
+		cache   map[string]CacheValue
+
+		enableCaching          bool
+		flattenEmbeddedStructs bool
+
+		// Hooks
+		onItemParse  OnParseItemFunc
+		onParseField OnParseFieldFunc
+	}
+)
 
 // New creates a new parser
 func New() *Parser {
@@ -155,6 +165,24 @@ func (p *Parser) Iterate(f func(Item) error) error {
 	}
 
 	return nil
+}
+
+// Sets the hook to run after parsing has been done
+// This is run after the item has been parsed and is ready to be used (also pre-caching)
+// If an error is returned, the item will not be cached or returned, and the error will be returned
+func (p *Parser) OnParseItem(fn OnParseItemFunc) {
+	if fn != nil {
+		p.onItemParse = fn
+	}
+}
+
+// Sets the hook to run after a field has been parsed
+// This is run after the field has been parsed and is ready to be attached to the original item
+// If an error is returned, the field will not be attached to the original item and the error will be returned
+func (p *Parser) OnParseField(fn OnParseFieldFunc) {
+	if fn != nil {
+		p.onParseField = fn
+	}
 }
 
 // Parse the nth source in the list of sources (0-indexed)
