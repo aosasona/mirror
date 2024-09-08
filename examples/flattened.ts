@@ -28,4 +28,9 @@ export type Flattened_Person = {
     is_active: boolean;
 };
 
+export type Flattened_Collection = {
+    items: Array<string>;
+    desc: string;
+};
+
 export type Flattened_CreateUserFunc = (arg0: Person) => string;

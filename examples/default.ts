@@ -32,4 +32,10 @@ export type Person = {
 	is_active: boolean;
 };
 
+export type Collection = {
+	items: Array<string>;
+	description?: string;
+	created_at: Date;
+};
+
 export type CreateUserFunc = (arg0: Person) => string;
