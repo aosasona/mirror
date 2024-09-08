@@ -795,6 +795,112 @@ func Test_ParseBuiltInTypes(t *testing.T) {
 	runTests(t, tests)
 }
 
+func Test_ParserHooks(t *testing.T) {
+	type (
+		TargetFoo struct {
+			Name string
+		}
+
+		NotTargetFoo struct {
+			Name string
+		}
+	)
+
+	tests := []Test{
+		{
+			Description: "parse struct with OnParseItem hook, add a new field",
+			Source:      TargetFoo{},
+			Expected: &Struct{
+				ItemName: "TargetFoo",
+				Fields: []Field{
+					{
+						ItemName: "Name",
+						BaseItem: &Scalar{"string", TypeString, false},
+						Meta: meta.Meta{
+							OriginalName: "Name",
+							Name:         "Name",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+
+					// Added dynamically
+					{
+						ItemName: "Age",
+						BaseItem: &Scalar{"int", TypeInteger, false},
+						Meta: meta.Meta{
+							OriginalName: "Age",
+							Name:         "AddedAge",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+				},
+			},
+		},
+
+		{
+			Description: "parse struct with OnParseItem hook, do not add a new field",
+			Source:      NotTargetFoo{},
+			Expected: &Struct{
+				ItemName: "NotTargetFoo",
+				Fields: []Field{
+					{
+						ItemName: "Name",
+						BaseItem: &Scalar{"string", TypeString, false},
+						Meta: meta.Meta{
+							OriginalName: "Name",
+							Name:         "Name",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	p := New()
+	p.SetFlattenEmbeddedStructs(true)
+
+	p.OnParseItem(func(name string, item Item) error {
+		// Add a new field to the struct if the name is "TargetFoo"
+		if name == "TargetFoo" {
+			item.(*Struct).Fields = append(item.(*Struct).Fields, Field{
+				ItemName: "Age",
+				BaseItem: &Scalar{"int", TypeInteger, false},
+				Meta: meta.Meta{
+					OriginalName: "Age",
+					Name:         "AddedAge",
+					Type:         "",
+					Optional:     false,
+					Skip:         false,
+				},
+			})
+		}
+
+		return nil
+	})
+
+	for _, tt := range tests {
+		got, err := p.Parse(reflect.TypeOf(tt.Source))
+		if err != nil && !tt.WantErr {
+			t.Errorf("[%s] wanted NO error, got error `%s`", tt.Description, err.Error())
+		}
+
+		if err == nil && tt.WantErr {
+			t.Errorf("[%s] wanted error, got no error", tt.Description)
+		}
+
+		if !reflect.DeepEqual(got, tt.Expected) {
+			t.Errorf("[%s] wanted %#v, got %#v", tt.Description, tt.Expected, got)
+		}
+	}
+}
+
 func runTests(t *testing.T, tests []Test) {
 	for _, tt := range tests {
 		runTest(t, tt)
