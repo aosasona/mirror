@@ -30,7 +30,7 @@ type (
 
 	OnParseItemFunc func(sourceName string, target Item) error
 
-	OnParseFieldFunc func(parentType reflect.Type, originalField reflect.StructField, field Field) error
+	OnParseFieldFunc func(parentType *reflect.Type, originalField *reflect.StructField, field *Field) error
 
 	Parser struct {
 		sources []reflect.Type
@@ -406,17 +406,28 @@ func (p *Parser) parseExemptedStructs(source reflect.Type, nullable bool) (Item,
 func (p *Parser) parseStruct(source reflect.Type, nullable bool) (*Struct, error) {
 	fields := make([]Field, 0)
 
+	withOnParseFieldHook := func(field *Field, sourceField *reflect.StructField) error {
+		if p.onParseFieldFn != nil {
+			if err := p.onParseFieldFn(&source, sourceField, field); err != nil {
+				return fmt.Errorf("failed to run `OnParseField` hook: %s", err.Error())
+			}
+		}
+
+		return nil
+	}
+
 	for i := 0; i < source.NumField(); i++ {
-		field := source.Field(i)
+		sourceField := source.Field(i)
 
 		// Skip unexported fields
-		if !field.IsExported() {
+		if !sourceField.IsExported() {
 			continue
 		}
 
 		// If it is embedded, parse it as part of the original struct (flatten it)
-		if p.flattenEmbeddedStructs && field.Anonymous && field.Type.Kind() == reflect.Struct {
-			item, err := p.Parse(field.Type)
+		if p.flattenEmbeddedStructs && sourceField.Anonymous &&
+			sourceField.Type.Kind() == reflect.Struct {
+			item, err := p.Parse(sourceField.Type)
 			if err != nil {
 				return &Struct{}, err
 			}
@@ -427,29 +438,39 @@ func (p *Parser) parseStruct(source reflect.Type, nullable bool) (*Struct, error
 
 			default:
 				// Account for the case where the embedded type is not a struct
-				name := helper.WithDefaultString(nestedItem.Name(), field.Name)
-				nestedItemMeta, err := p.parseField(name, field)
+				name := helper.WithDefaultString(nestedItem.Name(), sourceField.Name)
+				nestedItemMeta, err := p.parseField(name, sourceField)
 				if err != nil {
-					return &Struct{}, fmt.Errorf("failed to parse embedded field `%s`: %s", field.Name, err.Error())
+					return &Struct{}, fmt.Errorf("failed to parse embedded field `%s`: %s", sourceField.Name, err.Error())
 				}
 
-				fields = append(fields, Field{ItemName: nestedItemMeta.Name, BaseItem: nestedItem, Meta: nestedItemMeta})
+				nestedField := Field{ItemName: nestedItemMeta.Name, BaseItem: nestedItem, Meta: nestedItemMeta}
+				if err := withOnParseFieldHook(&nestedField, &sourceField); err != nil {
+					return &Struct{}, err
+				}
+
+				fields = append(fields, nestedField)
 			}
 
 			continue
 		}
 
-		meta, err := p.parseField("", field)
+		meta, err := p.parseField("", sourceField)
 		if err != nil {
 			return &Struct{}, err
 		}
 
-		item, err := p.Parse(field.Type)
+		item, err := p.Parse(sourceField.Type)
 		if err != nil {
 			return &Struct{}, err
 		}
 
-		fields = append(fields, Field{ItemName: meta.Name, BaseItem: item, Meta: meta})
+		field := Field{ItemName: meta.Name, BaseItem: item, Meta: meta}
+		if err := withOnParseFieldHook(&field, &sourceField); err != nil {
+			return &Struct{}, err
+		}
+
+		fields = append(fields, field)
 	}
 
 	return &Struct{ItemName: source.Name(), Fields: fields, Nullable: nullable}, nil
