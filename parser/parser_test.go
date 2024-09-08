@@ -804,6 +804,11 @@ func Test_ParserHooks(t *testing.T) {
 		NotTargetFoo struct {
 			Name string
 		}
+
+		Person struct {
+			FirstName string
+			LastName  string
+		}
 	)
 
 	tests := []Test{
@@ -861,6 +866,39 @@ func Test_ParserHooks(t *testing.T) {
 				},
 			},
 		},
+
+		{
+			Description: "parse struct with OnParseField hook, renaming FirstName to FName",
+			Source:      Person{},
+			Expected: &Struct{
+				ItemName: "Person",
+				Fields: []Field{
+					{
+						ItemName: "FName",
+						BaseItem: &Scalar{"string", TypeString, false},
+						Meta: meta.Meta{
+							OriginalName: "FirstName",
+							Name:         "FName",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+
+					{
+						ItemName: "LastName",
+						BaseItem: &Scalar{"string", TypeString, false},
+						Meta: meta.Meta{
+							OriginalName: "LastName",
+							Name:         "LastName",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+				},
+			},
+		},
 	}
 
 	p := New()
@@ -884,6 +922,18 @@ func Test_ParserHooks(t *testing.T) {
 
 		return nil
 	})
+
+	p.OnParseField(
+		func(parentType *reflect.Type, originalField *reflect.StructField, field *Field) error {
+			// Modify the field if the original name is "FirstName"
+			if field.Meta.OriginalName == "FirstName" {
+				field.Meta.Name = "FName"
+				field.ItemName = "FName"
+			}
+
+			return nil
+		},
+	)
 
 	for _, tt := range tests {
 		got, err := p.Parse(reflect.TypeOf(tt.Source))
