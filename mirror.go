@@ -97,7 +97,7 @@ func (m *Mirror) AddTarget(t types.TargetInterface) *Mirror {
 // SetParser() overrides the default parser with a custom parser or any other parser that implements the ParserInterface
 func (m *Mirror) SetParser(p types.ParserInterface) *Mirror {
 	p.SetConfig(parser.Config{
-		FlattenEmbeddedStructs: m.config.FlattenEmbeddedStructs,
+		FlattenEmbeddedTypes: m.config.FlattenEmbeddedTypes,
 		EnableCaching:          m.config.EnableParserCache,
 	})
 

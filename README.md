@@ -57,7 +57,7 @@ type Person struct {
 	CreatedAt time.Time      `mirror:"name:created_at"`
 	UpdatedAt *time.Time     `mirror:"name:updated_at,type:number"`
 	DeletedAt *time.Time     `mirror:"name:deleted_at"`
-	IsActive  bool           `ts:"name:is_active"` // using deprecated `ts` tag
+	IsActive  bool           `mirror:"name:is_active"`
 }
 
 type CreateUserFunc func(p Person) error
@@ -65,7 +65,7 @@ type CreateUserFunc func(p Person) error
 func main() {
 	m := mirror.New(config.Config{
 		Enabled:                os.Getenv("ENV") == "dev", // only enable mirror in dev
-		FlattenEmbeddedStructs: false,
+		FlattenEmbeddedTypes: false,
 	})
 
 	m.AddSources(

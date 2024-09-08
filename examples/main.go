@@ -37,7 +37,7 @@ type Person struct {
 	CreatedAt time.Time      `mirror:"name:created_at"`
 	UpdatedAt *time.Time     `mirror:"name:updated_at,type:number"`
 	DeletedAt *time.Time     `mirror:"name:deleted_at"`
-	IsActive  bool           `                                     ts:"name:is_active"` // using deprecated `ts` tag
+	IsActive  bool           `mirror:"name:is_active"`
 }
 
 type Collection struct {
@@ -51,8 +51,8 @@ func main() {
 	start := time.Now()
 
 	m := mirror.New(config.Config{
-		Enabled:                true,
-		FlattenEmbeddedStructs: false,
+		Enabled:              true,
+		FlattenEmbeddedTypes: false,
 	})
 
 	m.Parser().
@@ -119,8 +119,8 @@ func main() {
 		AddSources(*new(Language), Tags{}, Person{}, Collection{}, CreateUserFunc(nil))
 
 	newParser.SetConfig(parser.Config{
-		EnableCaching:          true,
-		FlattenEmbeddedStructs: true,
+		EnableCaching:        true,
+		FlattenEmbeddedTypes: true,
 	})
 
 	err = m.GenerateAndSaveAll()

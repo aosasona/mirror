@@ -902,7 +902,7 @@ func Test_ParserHooks(t *testing.T) {
 	}
 
 	p := New()
-	p.SetFlattenEmbeddedStructs(true)
+	p.SetFlattenEmbeddedTypes(true)
 
 	p.OnParseItem(func(name string, item Item) error {
 		// Add a new field to the struct if the name is "TargetFoo"
@@ -959,7 +959,7 @@ func runTests(t *testing.T, tests []Test) {
 
 func runTest(t *testing.T, tt Test) {
 	p := New()
-	p.SetFlattenEmbeddedStructs(true) // TODO: make this better
+	p.SetFlattenEmbeddedTypes(true) // TODO: make this better
 
 	got, err := p.Parse(reflect.TypeOf(tt.Source))
 	if err != nil && !tt.WantErr {
