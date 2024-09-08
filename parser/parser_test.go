@@ -628,14 +628,22 @@ func Test_ParseItem_Function(t *testing.T) {
 }
 
 func Test_ParseEmbeddedStruct(t *testing.T) {
-	type FooEmbedded struct {
-		Name string
-	}
+	type (
+		FooEmbedded struct{ Name string }
+		FooParent   struct {
+			FooEmbedded
+			Age int
+		}
 
-	type FooParent struct {
-		FooEmbedded
-		Age int
-	}
+		EmbeddedString        string
+		EmbeddedInt           int
+		EmbeddedBool          bool
+		FooWithEmbeddedString struct {
+			EmbeddedString `mirror:"name:embedded_string"` // with custom tag
+			*EmbeddedInt                                   // without custom tag and optional
+			*EmbeddedBool  `mirror:"name:probably,type:number"`
+		}
+	)
 
 	tests := []Test{
 		{
@@ -662,6 +670,51 @@ func Test_ParseEmbeddedStruct(t *testing.T) {
 							OriginalName: "Age",
 							Name:         "Age",
 							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+				},
+			},
+		},
+
+		{
+			Description: "parse struct with embedded non-struct type",
+			Source:      FooWithEmbeddedString{},
+			Expected: Struct{
+				ItemName: "FooWithEmbeddedString",
+				Fields: []Field{
+					{
+						ItemName: "embedded_string",
+						BaseItem: Scalar{"EmbeddedString", TypeString, false},
+						Meta: meta.Meta{
+							OriginalName: "EmbeddedString",
+							Name:         "embedded_string",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+
+					{
+						ItemName: "EmbeddedInt",
+						BaseItem: Scalar{"EmbeddedInt", TypeInteger, true},
+						Meta: meta.Meta{
+							OriginalName: "EmbeddedInt",
+							Name:         "EmbeddedInt",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+
+					{
+						ItemName: "probably",
+						BaseItem: Scalar{"EmbeddedBool", TypeBoolean, true},
+						Meta: meta.Meta{
+							OriginalName: "EmbeddedBool",
+							Name:         "probably",
+							Type:         "number",
 							Optional:     false,
 							Skip:         false,
 						},
@@ -762,6 +815,6 @@ func runTest(t *testing.T, tt Test) {
 	}
 
 	if !reflect.DeepEqual(got, tt.Expected) {
-		t.Errorf("[%s] wanted %v, got %v", tt.Description, tt.Expected, got)
+		t.Errorf("[%s] wanted %#v, got %#v", tt.Description, tt.Expected, got)
 	}
 }

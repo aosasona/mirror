@@ -22,6 +22,7 @@ type (
 		Item    *Item
 	}
 
+	// TODO: rename FlattenEmbeddedStructs to FlattenEmbeddedTypes
 	Config struct {
 		EnableCaching          bool
 		FlattenEmbeddedStructs bool
@@ -325,11 +326,11 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 }
 
 // Parse a struct field and extract the meta information
-func (p *Parser) parseField(field reflect.StructField) (meta.Meta, error) {
+func (p *Parser) parseField(fieldName string, field reflect.StructField) (meta.Meta, error) {
 	rootMeta := meta.Meta{}
 
-	rootMeta.OriginalName = helper.WithDefaultString(rootMeta.OriginalName, field.Name)
-	rootMeta.Name = helper.WithDefaultString(rootMeta.Name, field.Name)
+	rootMeta.OriginalName = helper.WithDefaultString(fieldName, field.Name)
+	rootMeta.Name = helper.WithDefaultString(fieldName, field.Name)
 
 	// Parse the JSON struct tag first
 	jsonMeta, err := extractor.ExtractJSONMeta(field, &rootMeta)
@@ -412,14 +413,25 @@ func (p *Parser) parseStruct(source reflect.Type, nullable bool) (Struct, error)
 				return Struct{}, err
 			}
 
-			if embeddedFields, ok := item.(Struct); ok {
-				fields = append(fields, embeddedFields.Fields...)
+			switch nestedItem := item.(type) {
+			case Struct:
+				fields = append(fields, nestedItem.Fields...)
+
+			default:
+				// Account for the case where the embedded type is not a struct
+				name := helper.WithDefaultString(nestedItem.Name(), field.Name)
+				nestedItemMeta, err := p.parseField(name, field)
+				if err != nil {
+					return Struct{}, fmt.Errorf("failed to parse embedded field `%s`: %s", field.Name, err.Error())
+				}
+
+				fields = append(fields, Field{ItemName: nestedItemMeta.Name, BaseItem: nestedItem, Meta: nestedItemMeta})
 			}
 
 			continue
 		}
 
-		meta, err := p.parseField(field)
+		meta, err := p.parseField("", field)
 		if err != nil {
 			return Struct{}, err
 		}
