@@ -345,7 +345,7 @@ func (p *Parser) parseField(fieldName string, field reflect.StructField) (meta.M
 		return meta.Meta{}, err
 	}
 
-	// Parse the custom `mirror` and `ts` struct tags to override the JSON struct tag if present
+	// Parse the custom `mirror` struct tags to override the JSON struct tag if present
 	mirrorMeta, err := extractor.ExtractMirrorMeta(field, jsonMeta)
 	if err != nil {
 		return meta.Meta{}, err

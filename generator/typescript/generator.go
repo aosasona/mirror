@@ -268,7 +268,7 @@ func (g *Generator) generateStruct(item *parser.Struct, nestingLevel int) (strin
 
 		fieldStr += ": "
 
-		// if the field has an override type (using the `ts` or `mirror` tag), use that
+		// if the field has an override type (using the `mirror` tag), use that
 		if field.Meta.Type != "" {
 			fieldStr += field.Meta.Type
 

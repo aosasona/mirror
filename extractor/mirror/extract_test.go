@@ -45,7 +45,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 			Source: nameField,
 			Expected: &meta.Meta{
 				OriginalName: "Name",
-				Name:         "first_name",
+				Name:         "Name",
 				Skip:         false,
 				Optional:     false,
 			},

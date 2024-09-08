@@ -1,7 +1,6 @@
 package mirrormeta
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -29,17 +28,6 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 	}
 
 	mirrorTag := strings.TrimSpace(field.Tag.Get("mirror"))
-
-	// check if there is a `ts` tag in the field (for backwards compatibility)
-	if mirrorTag == "" {
-		// Deprecated: The `ts` struct tag has been deprecated and will be removed in a future release
-		mirrorTag = strings.TrimSpace(field.Tag.Get("ts"))
-		if mirrorTag != "" {
-			fmt.Println(
-				"[WARN:MIRROR] The legacy `ts` struct tag has been deprecated and will be removed in a future release",
-			)
-		}
-	}
 
 	if mirrorTag == "" {
 		return fieldMeta, nil
