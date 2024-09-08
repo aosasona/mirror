@@ -65,7 +65,7 @@ type CreateUserFunc func(p Person) error
 func main() {
 	m := mirror.New(config.Config{
 		Enabled:                os.Getenv("ENV") == "dev", // only enable mirror in dev
-		FlattenEmbeddedStructs: false,
+		FlattenEmbeddedTypes: false,
 	})
 
 	m.AddSources(

@@ -26,7 +26,7 @@ type Config struct {
 	// Targets are the languages and files to generate types for, at least ONE target MUST be defined
 	Targets []types.TargetInterface
 
-	// FlattenEmbeddedStructs will flatten embedded structs into the parent struct
+	// FlattenEmbeddedTypes will flatten embedded types into the parent struct
 	//
 	// For example:
 	//
@@ -44,15 +44,15 @@ type Config struct {
 	//     BarField string
 	// }
 	//
-	FlattenEmbeddedStructs bool
+	FlattenEmbeddedTypes bool
 }
 
 // DefaultConfig returns a new Config with default values (Mirror is disabled by default)
 func DefaultConfig() *Config {
 	return &Config{
-		Enabled:                false,
-		EnableParserCache:      true,
-		FlattenEmbeddedStructs: true,
+		Enabled:              false,
+		EnableParserCache:    true,
+		FlattenEmbeddedTypes: true,
 	}
 }
 

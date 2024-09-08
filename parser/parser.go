@@ -22,10 +22,9 @@ type (
 		Item    *Item
 	}
 
-	// TODO: rename FlattenEmbeddedStructs to FlattenEmbeddedTypes
 	Config struct {
-		EnableCaching          bool
-		FlattenEmbeddedStructs bool
+		EnableCaching        bool
+		FlattenEmbeddedTypes bool
 	}
 
 	OnParseItemFunc func(sourceName string, target Item) error
@@ -36,8 +35,8 @@ type (
 		sources []reflect.Type
 		cache   map[string]CacheValue
 
-		enableCaching          bool
-		flattenEmbeddedStructs bool
+		enableCaching        bool
+		flattenEmbeddedTypes bool
 
 		// Hooks
 		onParseItemFn  OnParseItemFunc
@@ -48,10 +47,10 @@ type (
 // New creates a new parser
 func New() *Parser {
 	return &Parser{
-		cache:                  make(map[string]CacheValue),
-		sources:                []reflect.Type{},
-		enableCaching:          true,
-		flattenEmbeddedStructs: false,
+		cache:                make(map[string]CacheValue),
+		sources:              []reflect.Type{},
+		enableCaching:        true,
+		flattenEmbeddedTypes: false,
 	}
 }
 
@@ -64,7 +63,7 @@ func (p *Parser) Reset() {
 // Set the parser's configuration
 func (p *Parser) SetConfig(config Config) error {
 	p.enableCaching = config.EnableCaching
-	p.flattenEmbeddedStructs = config.FlattenEmbeddedStructs
+	p.flattenEmbeddedTypes = config.FlattenEmbeddedTypes
 
 	return nil
 }
@@ -96,8 +95,8 @@ func (p *Parser) SetSources(sources []reflect.Type) {
 }
 
 // Enable or disable flattening of embedded structs
-func (p *Parser) SetFlattenEmbeddedStructs(flatten bool) *Parser {
-	p.flattenEmbeddedStructs = flatten
+func (p *Parser) SetFlattenEmbeddedTypes(flatten bool) *Parser {
+	p.flattenEmbeddedTypes = flatten
 	return p
 }
 
@@ -425,7 +424,7 @@ func (p *Parser) parseStruct(source reflect.Type, nullable bool) (*Struct, error
 		}
 
 		// If it is embedded, parse it as part of the original struct (flatten it)
-		if p.flattenEmbeddedStructs && sourceField.Anonymous &&
+		if p.flattenEmbeddedTypes && sourceField.Anonymous &&
 			sourceField.Type.Kind() == reflect.Struct {
 			item, err := p.Parse(sourceField.Type)
 			if err != nil {

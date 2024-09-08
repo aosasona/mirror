@@ -51,8 +51,8 @@ func main() {
 	start := time.Now()
 
 	m := mirror.New(config.Config{
-		Enabled:                true,
-		FlattenEmbeddedStructs: false,
+		Enabled:              true,
+		FlattenEmbeddedTypes: false,
 	})
 
 	m.Parser().
@@ -119,8 +119,8 @@ func main() {
 		AddSources(*new(Language), Tags{}, Person{}, Collection{}, CreateUserFunc(nil))
 
 	newParser.SetConfig(parser.Config{
-		EnableCaching:          true,
-		FlattenEmbeddedStructs: true,
+		EnableCaching:        true,
+		FlattenEmbeddedTypes: true,
 	})
 
 	err = m.GenerateAndSaveAll()
