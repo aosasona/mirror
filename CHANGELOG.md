@@ -5,6 +5,7 @@
 - Added support for non-struct embedded types (you can now embed fields that are not structs, with full support for struct tags)
 - Built-in `parser.Item` types (`Scalar`, `Map`, `List` etc) are now implemented as pointers (i.e. the methods are implemented via pointer receivers)
 - Renamed `FlattenEmbeddedStructs` to `FlattenEmbeddedTypes`
+- Fully dropped support for legacy `ts` tag
 
 # 2.1.1
 
