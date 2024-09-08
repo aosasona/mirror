@@ -83,98 +83,98 @@ type Function struct {
 }
 
 // SCALAR
-func (s Scalar) Name() string {
+func (s *Scalar) Name() string {
 	return s.ItemName
 }
 
-func (s Scalar) Type() Type {
+func (s *Scalar) Type() Type {
 	return s.ItemType
 }
 
-func (s Scalar) IsScalar() bool {
+func (s *Scalar) IsScalar() bool {
 	return true
 }
 
-func (s Scalar) IsNullable() bool {
+func (s *Scalar) IsNullable() bool {
 	return s.Nullable
 }
 
 // STRUCT
-func (s Struct) Name() string {
+func (s *Struct) Name() string {
 	return s.ItemName
 }
 
-func (s Struct) Type() Type {
+func (s *Struct) Type() Type {
 	return TypeStruct
 }
 
-func (s Struct) IsScalar() bool {
+func (s *Struct) IsScalar() bool {
 	return false
 }
 
-func (s Struct) IsNullable() bool {
+func (s *Struct) IsNullable() bool {
 	return s.Nullable
 }
 
 // PAIR
-func (p Map) Name() string {
-	return p.ItemName
+func (m *Map) Name() string {
+	return m.ItemName
 }
 
-func (p Map) Type() Type {
+func (m *Map) Type() Type {
 	return TypeMap
 }
 
-func (p Map) IsScalar() bool {
+func (m *Map) IsScalar() bool {
 	return false
 }
 
-func (p Map) IsNullable() bool {
-	return p.Nullable
+func (m *Map) IsNullable() bool {
+	return m.Nullable
 }
 
 // LIST
-func (l List) Name() string {
+func (l *List) Name() string {
 	return l.ItemName
 }
 
-func (l List) Type() Type {
+func (l *List) Type() Type {
 	return TypeList
 }
 
-func (l List) IsScalar() bool {
+func (l *List) IsScalar() bool {
 	return false
 }
 
-func (l List) IsArray() bool {
+func (l *List) IsArray() bool {
 	return l.Length != EmptyLength
 }
 
-func (l List) IsNullable() bool {
+func (l *List) IsNullable() bool {
 	return l.Nullable
 }
 
 // FUNCTION
-func (f Function) Name() string {
+func (f *Function) Name() string {
 	return f.ItemName
 }
 
-func (f Function) Type() Type {
+func (f *Function) Type() Type {
 	return TypeFunction
 }
 
-func (f Function) IsScalar() bool {
+func (f *Function) IsScalar() bool {
 	return false
 }
 
-func (f Function) IsNullable() bool {
+func (f *Function) IsNullable() bool {
 	return f.Nullable
 }
 
 var (
-	_ Item = Scalar{}
-	_ Item = Struct{}
-	_ Item = Map{}
-	_ Item = List{}
-	_ Item = Function{}
+	_ Item = (*Scalar)(nil)
+	_ Item = (*Struct)(nil)
+	_ Item = (*Map)(nil)
+	_ Item = (*List)(nil)
+	_ Item = (*Function)(nil)
 )

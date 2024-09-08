@@ -40,6 +40,12 @@ export type Inline_Person = {
 	is_active: boolean;
 };
 
+export type Inline_Collection = {
+	items: Array<string>;
+	description?: string;
+	created_at: Date;
+};
+
 export type Inline_CreateUserFunc = (arg0: {
 	first_name: string;
 	last_name: string;

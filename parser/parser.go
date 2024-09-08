@@ -12,27 +12,38 @@ import (
 	"go.trulyao.dev/mirror/v2/helper"
 )
 
-type Options struct {
-	OverrideNullable bool
-}
+type (
+	Options struct {
+		OverrideNullable bool
+	}
 
-type CacheValue struct {
-	Options Options
-	Item    *Item
-}
+	CacheValue struct {
+		Options Options
+		Item    *Item
+	}
 
-type Config struct {
-	EnableCaching          bool
-	FlattenEmbeddedStructs bool
-}
+	// TODO: rename FlattenEmbeddedStructs to FlattenEmbeddedTypes
+	Config struct {
+		EnableCaching          bool
+		FlattenEmbeddedStructs bool
+	}
 
-type Parser struct {
-	sources []reflect.Type
-	cache   map[string]CacheValue
+	OnParseItemFunc func(sourceName string, target Item) error
 
-	enableCaching          bool
-	flattenEmbeddedStructs bool
-}
+	OnParseFieldFunc func(parentType *reflect.Type, originalField *reflect.StructField, field *Field) error
+
+	Parser struct {
+		sources []reflect.Type
+		cache   map[string]CacheValue
+
+		enableCaching          bool
+		flattenEmbeddedStructs bool
+
+		// Hooks
+		onParseItemFn  OnParseItemFunc
+		onParseFieldFn OnParseFieldFunc
+	}
+)
 
 // New creates a new parser
 func New() *Parser {
@@ -157,6 +168,24 @@ func (p *Parser) Iterate(f func(Item) error) error {
 	return nil
 }
 
+// Sets the hook to run after parsing has been done
+// This is run after the item has been parsed and is ready to be used (also pre-caching)
+// If an error is returned, the item will not be cached or returned, and the error will be returned
+func (p *Parser) OnParseItem(fn OnParseItemFunc) {
+	if fn != nil {
+		p.onParseItemFn = fn
+	}
+}
+
+// Sets the hook to run after a field has been parsed
+// This is run after the field has been parsed and is ready to be attached to the original item
+// If an error is returned, the field will not be attached to the original item and the error will be returned
+func (p *Parser) OnParseField(fn OnParseFieldFunc) {
+	if fn != nil {
+		p.onParseFieldFn = fn
+	}
+}
+
 // Parse the nth source in the list of sources (0-indexed)
 func (p *Parser) ParseN(n int) (Item, error) {
 	if n < 0 {
@@ -247,16 +276,16 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 		reflect.Uint32,
 		reflect.Uint64,
 		reflect.Uint:
-		item = Scalar{source.Name(), TypeInteger, nullable}
+		item = &Scalar{source.Name(), TypeInteger, nullable}
 
 	case reflect.Float32, reflect.Float64:
-		item = Scalar{source.Name(), TypeFloat, nullable}
+		item = &Scalar{source.Name(), TypeFloat, nullable}
 
 	case reflect.String:
-		item = Scalar{source.Name(), TypeString, nullable}
+		item = &Scalar{source.Name(), TypeString, nullable}
 
 	case reflect.Bool:
-		item = Scalar{source.Name(), TypeBoolean, nullable}
+		item = &Scalar{source.Name(), TypeBoolean, nullable}
 
 	case reflect.Map:
 		item, err = p.parseMap(source, nullable)
@@ -289,19 +318,27 @@ func (p *Parser) Parse(source reflect.Type, opts ...Options) (Item, error) {
 		return nil, err
 	}
 
+	// Add item to cache if caching is enabled
 	if p.enableCaching {
 		p.cache[cacheKey] = CacheValue{Options: opt, Item: &item}
+	}
+
+	// Run the `OnParseItem` hook if present
+	if p.onParseItemFn != nil {
+		if err := p.onParseItemFn(source.Name(), item); err != nil {
+			return nil, err
+		}
 	}
 
 	return item, nil
 }
 
 // Parse a struct field and extract the meta information
-func (p *Parser) parseField(field reflect.StructField) (meta.Meta, error) {
+func (p *Parser) parseField(fieldName string, field reflect.StructField) (meta.Meta, error) {
 	rootMeta := meta.Meta{}
 
-	rootMeta.OriginalName = helper.WithDefaultString(rootMeta.OriginalName, field.Name)
-	rootMeta.Name = helper.WithDefaultString(rootMeta.Name, field.Name)
+	rootMeta.OriginalName = helper.WithDefaultString(fieldName, field.Name)
+	rootMeta.Name = helper.WithDefaultString(fieldName, field.Name)
 
 	// Parse the JSON struct tag first
 	jsonMeta, err := extractor.ExtractJSONMeta(field, &rootMeta)
@@ -323,42 +360,42 @@ func (p *Parser) parseField(field reflect.StructField) (meta.Meta, error) {
 func (p *Parser) parseExemptedStructs(source reflect.Type, nullable bool) (Item, error) {
 	switch {
 	case source == reflect.TypeOf(time.Time{}):
-		return Scalar{source.Name(), TypeTimestamp, nullable}, nil
+		return &Scalar{source.Name(), TypeTimestamp, nullable}, nil
 
 	case source == reflect.TypeOf(time.Duration(0)):
-		return Scalar{source.Name(), TypeInteger, nullable}, nil
+		return &Scalar{source.Name(), TypeInteger, nullable}, nil
 
 	case source == reflect.TypeOf([]byte{}):
-		return Scalar{source.Name(), TypeString, nullable}, nil
+		return &Scalar{source.Name(), TypeString, nullable}, nil
 
 	case source == reflect.TypeOf([]interface{}{}):
-		return List{
+		return &List{
 			ItemName: source.Name(),
-			BaseItem: Scalar{"any", TypeAny, nullable},
+			BaseItem: &Scalar{"any", TypeAny, nullable},
 			Nullable: nullable,
 		}, nil
 
 	// SQL types
 	case source == reflect.TypeOf(sql.NullBool{}):
-		return Scalar{source.Name(), TypeBoolean, true}, nil
+		return &Scalar{source.Name(), TypeBoolean, true}, nil
 
 	case source == reflect.TypeOf(sql.NullFloat64{}):
-		return Scalar{source.Name(), TypeFloat, true}, nil
+		return &Scalar{source.Name(), TypeFloat, true}, nil
 
 	case
 		source == reflect.TypeOf(sql.NullInt64{}),
 		source == reflect.TypeOf(sql.NullInt32{}),
 		source == reflect.TypeOf(sql.NullInt16{}):
-		return Scalar{source.Name(), TypeInteger, true}, nil
+		return &Scalar{source.Name(), TypeInteger, true}, nil
 
 	case source == reflect.TypeOf(sql.NullString{}):
-		return Scalar{source.Name(), TypeString, true}, nil
+		return &Scalar{source.Name(), TypeString, true}, nil
 
 	case source == reflect.TypeOf(sql.NullTime{}):
-		return Scalar{source.Name(), TypeTimestamp, true}, nil
+		return &Scalar{source.Name(), TypeTimestamp, true}, nil
 
 	case source == reflect.TypeOf(sql.NullByte{}):
-		return Scalar{source.Name(), TypeByte, true}, nil
+		return &Scalar{source.Name(), TypeByte, true}, nil
 
 	default:
 		return nil, fmt.Errorf("not implemented for %s", source.Name())
@@ -366,67 +403,99 @@ func (p *Parser) parseExemptedStructs(source reflect.Type, nullable bool) (Item,
 }
 
 // Parse a struct type
-func (p *Parser) parseStruct(source reflect.Type, nullable bool) (Struct, error) {
+func (p *Parser) parseStruct(source reflect.Type, nullable bool) (*Struct, error) {
 	fields := make([]Field, 0)
 
+	withOnParseFieldHook := func(field *Field, sourceField *reflect.StructField) error {
+		if p.onParseFieldFn != nil {
+			if err := p.onParseFieldFn(&source, sourceField, field); err != nil {
+				return fmt.Errorf("failed to run `OnParseField` hook: %s", err.Error())
+			}
+		}
+
+		return nil
+	}
+
 	for i := 0; i < source.NumField(); i++ {
-		field := source.Field(i)
+		sourceField := source.Field(i)
 
 		// Skip unexported fields
-		if !field.IsExported() {
+		if !sourceField.IsExported() {
 			continue
 		}
 
 		// If it is embedded, parse it as part of the original struct (flatten it)
-		if p.flattenEmbeddedStructs && field.Anonymous && field.Type.Kind() == reflect.Struct {
-			item, err := p.Parse(field.Type)
+		if p.flattenEmbeddedStructs && sourceField.Anonymous &&
+			sourceField.Type.Kind() == reflect.Struct {
+			item, err := p.Parse(sourceField.Type)
 			if err != nil {
-				return Struct{}, err
+				return &Struct{}, err
 			}
 
-			if embeddedFields, ok := item.(Struct); ok {
-				fields = append(fields, embeddedFields.Fields...)
+			switch nestedItem := item.(type) {
+			case *Struct:
+				fields = append(fields, nestedItem.Fields...)
+
+			default:
+				// Account for the case where the embedded type is not a struct
+				name := helper.WithDefaultString(nestedItem.Name(), sourceField.Name)
+				nestedItemMeta, err := p.parseField(name, sourceField)
+				if err != nil {
+					return &Struct{}, fmt.Errorf("failed to parse embedded field `%s`: %s", sourceField.Name, err.Error())
+				}
+
+				nestedField := Field{ItemName: nestedItemMeta.Name, BaseItem: nestedItem, Meta: nestedItemMeta}
+				if err := withOnParseFieldHook(&nestedField, &sourceField); err != nil {
+					return &Struct{}, err
+				}
+
+				fields = append(fields, nestedField)
 			}
 
 			continue
 		}
 
-		meta, err := p.parseField(field)
+		meta, err := p.parseField("", sourceField)
 		if err != nil {
-			return Struct{}, err
+			return &Struct{}, err
 		}
 
-		item, err := p.Parse(field.Type)
+		item, err := p.Parse(sourceField.Type)
 		if err != nil {
-			return Struct{}, err
+			return &Struct{}, err
 		}
 
-		fields = append(fields, Field{ItemName: meta.Name, BaseItem: item, Meta: meta})
+		field := Field{ItemName: meta.Name, BaseItem: item, Meta: meta}
+		if err := withOnParseFieldHook(&field, &sourceField); err != nil {
+			return &Struct{}, err
+		}
+
+		fields = append(fields, field)
 	}
 
-	return Struct{ItemName: source.Name(), Fields: fields, Nullable: nullable}, nil
+	return &Struct{ItemName: source.Name(), Fields: fields, Nullable: nullable}, nil
 }
 
 // Parse a map type
-func (p *Parser) parseMap(source reflect.Type, nullable bool) (Map, error) {
+func (p *Parser) parseMap(source reflect.Type, nullable bool) (*Map, error) {
 	keyItem, err := p.Parse(source.Key())
 	if err != nil {
-		return Map{}, err
+		return &Map{}, err
 	}
 
 	valueItem, err := p.Parse(source.Elem())
 	if err != nil {
-		return Map{}, err
+		return &Map{}, err
 	}
 
-	return Map{source.Name(), keyItem, valueItem, nullable}, nil
+	return &Map{source.Name(), keyItem, valueItem, nullable}, nil
 }
 
 // Parse a list type (slice or array)
-func (p *Parser) parseList(source reflect.Type, nullable bool) (List, error) {
+func (p *Parser) parseList(source reflect.Type, nullable bool) (*List, error) {
 	item, err := p.Parse(source.Elem())
 	if err != nil {
-		return List{}, err
+		return &List{}, err
 	}
 
 	length := EmptyLength
@@ -434,18 +503,18 @@ func (p *Parser) parseList(source reflect.Type, nullable bool) (List, error) {
 		length = source.Len()
 	}
 
-	return List{ItemName: source.Name(), BaseItem: item, Nullable: nullable, Length: length}, nil
+	return &List{ItemName: source.Name(), BaseItem: item, Nullable: nullable, Length: length}, nil
 }
 
 // Parse a function type
-func (p *Parser) parseFunc(source reflect.Type, nullable bool) (Function, error) {
+func (p *Parser) parseFunc(source reflect.Type, nullable bool) (*Function, error) {
 	params := make([]Item, 0)
 	returns := make([]Item, 0)
 
 	for i := 0; i < source.NumIn(); i++ {
 		param, err := p.Parse(source.In(i))
 		if err != nil {
-			return Function{}, err
+			return &Function{}, err
 		}
 
 		params = append(params, param)
@@ -454,13 +523,13 @@ func (p *Parser) parseFunc(source reflect.Type, nullable bool) (Function, error)
 	for i := 0; i < source.NumOut(); i++ {
 		ret, err := p.Parse(source.Out(i))
 		if err != nil {
-			return Function{}, err
+			return &Function{}, err
 		}
 
 		returns = append(returns, ret)
 	}
 
-	return Function{
+	return &Function{
 		ItemName: source.Name(),
 		Params:   params,
 		Returns:  returns,
@@ -473,9 +542,9 @@ func (p *Parser) parseFunc(source reflect.Type, nullable bool) (Function, error)
 func (p *Parser) parseInterface(source reflect.Type, nullable bool) (Item, error) {
 	switch source.Name() {
 	case "interface{}", "any":
-		return Scalar{source.Name(), TypeAny, nullable}, nil
+		return &Scalar{source.Name(), TypeAny, nullable}, nil
 	case "error":
-		return Scalar{source.Name(), TypeString, nullable}, nil
+		return &Scalar{source.Name(), TypeString, nullable}, nil
 	default:
 		return nil, fmt.Errorf("not implemented for %s", source.Name())
 	}

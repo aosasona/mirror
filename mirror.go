@@ -222,9 +222,8 @@ func (m *Mirror) SaveToFile(target types.TargetInterface, code string) error {
 }
 
 // Check that all built-in implementations match the interface types
-var _ types.ParserInterface = &parser.Parser{}
-
 var (
+	_ types.ParserInterface    = &parser.Parser{}
 	_ types.TargetInterface    = &typescript.Config{}
 	_ types.GeneratorInterface = &typescript.Generator{}
 )

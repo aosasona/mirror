@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	"go.trulyao.dev/mirror/v2"
 	"go.trulyao.dev/mirror/v2/config"
+	"go.trulyao.dev/mirror/v2/extractor/meta"
 	"go.trulyao.dev/mirror/v2/generator/typescript"
 	"go.trulyao.dev/mirror/v2/parser"
 )
@@ -35,7 +37,12 @@ type Person struct {
 	CreatedAt time.Time      `mirror:"name:created_at"`
 	UpdatedAt *time.Time     `mirror:"name:updated_at,type:number"`
 	DeletedAt *time.Time     `mirror:"name:deleted_at"`
-	IsActive  bool           `ts:"name:is_active"` // using deprecated `ts` tag
+	IsActive  bool           `                                     ts:"name:is_active"` // using deprecated `ts` tag
+}
+
+type Collection struct {
+	Items []string `mirror:"name:items"`
+	Desc  string   `mirror:"name:desc"`
 }
 
 type CreateUserFunc func(p Person) error
@@ -48,7 +55,37 @@ func main() {
 		FlattenEmbeddedStructs: false,
 	})
 
-	m.AddSources(Language(""), Address{}, Tags{}, Person{}, CreateUserFunc(nil))
+	m.Parser().
+		OnParseField(func(_ *reflect.Type, _ *reflect.StructField, field *parser.Field) error {
+			// Rename the `desc` field to `description` and make it optional
+			if field.ItemName == "desc" {
+				field.Meta.Name = "description"
+				field.ItemName = "description"
+				field.Meta.Optional = true
+			}
+
+			return nil
+		})
+
+	m.Parser().OnParseItem(func(sourceName string, target parser.Item) error {
+		// Add a new `created_at` field to the `Collection` struct
+		if sourceName == "Collection" {
+			createdAtField := parser.Field{
+				ItemName: "CreatedAt",
+				BaseItem: &parser.Scalar{
+					ItemName: "",
+					ItemType: parser.TypeString,
+				},
+				Meta: meta.Meta{Name: "created_at", Type: "Date"},
+			}
+
+			target.(*parser.Struct).Fields = append(target.(*parser.Struct).Fields, createdAtField)
+		}
+
+		return nil
+	})
+
+	m.AddSources(Language(""), Address{}, Tags{}, Person{}, Collection{}, CreateUserFunc(nil))
 
 	defaultTS := typescript.DefaultConfig().
 		SetFileName("default.ts").
@@ -79,7 +116,7 @@ func main() {
 	m.ResetTargets().
 		SetParser(newParser).
 		AddTarget(flattenedTS).
-		AddSources(*new(Language), Tags{}, Person{}, CreateUserFunc(nil))
+		AddSources(*new(Language), Tags{}, Person{}, Collection{}, CreateUserFunc(nil))
 
 	newParser.SetConfig(parser.Config{
 		EnableCaching:          true,

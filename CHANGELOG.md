@@ -1,3 +1,10 @@
+# 2.2.0
+
+- Added `OnParseItem` and `OnParseField` hooks to the parser interface
+- Implemented both hooks (`OnParseItem` and `OnParseField`) for built-in parser
+- Added support for non-struct embedded types (you can now embed fields that are not structs, with full support for struct tags)
+- Built-in `parser.Item` types (`Scalar`, `Map`, `List` etc) are now implemented as pointers (i.e. the methods are implemented via pointer receivers)
+
 # 2.1.1
 
 - Added new `GenerateItemType` method on generator interface to generate pure types instead of full exported declarations

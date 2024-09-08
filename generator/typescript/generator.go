@@ -117,19 +117,19 @@ func (g *Generator) generateBaseType(item parser.Item, nestingLevel ...int) (str
 	)
 
 	switch item := item.(type) {
-	case parser.Scalar:
+	case *parser.Scalar:
 		baseType, err = g.generateScalar(item)
-	case parser.List:
+	case *parser.List:
 		baseType, err = g.generateList(item)
-	case parser.Struct:
+	case *parser.Struct:
 		level := 1
 		if len(nestingLevel) > 0 {
 			level = nestingLevel[0]
 		}
 		baseType, err = g.generateStruct(item, level)
-	case parser.Map:
+	case *parser.Map:
 		baseType, err = g.generateMap(item)
-	case parser.Function:
+	case *parser.Function:
 		baseType, err = g.generateFunction(item)
 	default:
 		return "", fmt.Errorf("unknown type: %T", item)
@@ -216,7 +216,7 @@ func (g *Generator) getScalarRepresentation(mirrorType parser.Type) string {
 }
 
 // generateScalar generates the typescript representation of a scalar type (string, number, boolean, etc)
-func (g *Generator) generateScalar(item parser.Scalar) (string, error) {
+func (g *Generator) generateScalar(item *parser.Scalar) (string, error) {
 	typeValue := g.getScalarRepresentation(item.Type())
 	if typeValue == "" {
 		return "", fmt.Errorf("unknown scalar type: %s", item.Name())
@@ -226,7 +226,7 @@ func (g *Generator) generateScalar(item parser.Scalar) (string, error) {
 }
 
 // generateStruct generates the typescript representation of a struct
-func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string, error) {
+func (g *Generator) generateStruct(item *parser.Struct, nestingLevel int) (string, error) {
 	var fields []string
 
 	for _, field := range item.Fields {
@@ -312,7 +312,7 @@ func (g *Generator) generateStruct(item parser.Struct, nestingLevel int) (string
 }
 
 // generateList generates the typescript representation of a list type (array or slice in Go)
-func (g *Generator) generateList(item parser.List) (string, error) {
+func (g *Generator) generateList(item *parser.List) (string, error) {
 	var (
 		listString = ""
 		err        error
@@ -332,7 +332,7 @@ func (g *Generator) generateList(item parser.List) (string, error) {
 
 	// Scalar types are expanded to their types (e.g. string, number, etc) by default
 	if item.BaseItem.IsScalar() {
-		if baseType, err = g.generateScalar(item.BaseItem.(parser.Scalar)); err != nil {
+		if baseType, err = g.generateScalar(item.BaseItem.(*parser.Scalar)); err != nil {
 			return "", err
 		}
 
@@ -366,7 +366,7 @@ func (g *Generator) generateList(item parser.List) (string, error) {
 }
 
 // generateMap generates the typescript representation of a map
-func (g *Generator) generateMap(item parser.Map) (string, error) {
+func (g *Generator) generateMap(item *parser.Map) (string, error) {
 	typeString := "Record<%s, %s>"
 
 	if item.Key == nil || item.Value == nil {
@@ -382,7 +382,12 @@ func (g *Generator) generateMap(item parser.Map) (string, error) {
 		return "", fmt.Errorf("non-scalar map key (%s) is not supported", item.Key.Name())
 	}
 
-	if keyType, err = g.generateScalar(item.Key.(parser.Scalar)); err != nil {
+	key, ok := item.Key.(*parser.Scalar)
+	if !ok {
+		return "", fmt.Errorf("non-scalar map key (%s) is not supported", item.Key.Name())
+	}
+
+	if keyType, err = g.generateScalar(key); err != nil {
 		return "", err
 	}
 
@@ -394,7 +399,7 @@ func (g *Generator) generateMap(item parser.Map) (string, error) {
 }
 
 // generateFunction generates the typescript representation of a function
-func (g *Generator) generateFunction(item parser.Function) (string, error) {
+func (g *Generator) generateFunction(item *parser.Function) (string, error) {
 	var (
 		parameterTypes []string
 		returnType     = "void"

@@ -40,6 +40,18 @@ type ParserInterface interface {
 
 	// Reset the parser to its initial state
 	Reset()
+
+	/////// HOOKS ///////
+
+	// Add a hook to run after the item has been parsed and is ready to be used (i.e. when the item is fully populated with data, before caching)
+	// Passes the original source name and the target item (which is now populated with data)
+	//
+	// NOTE: This is only called on type as a whole in the `parser.Parse` function, not on individual fields where present. Also, the modified item is cached as is after this hook runs
+	OnParseItem(fn parser.OnParseItemFunc)
+
+	// Add a hook that is run after a field is fully parsed and ready to be attached to the original item
+	// Passes the original source field, the parsed field and the original parent type to the callback function
+	OnParseField(fn parser.OnParseFieldFunc)
 }
 
 // A general language interface to make it harder to pass in a wrong language or extend the built-in languages and backends in the future
