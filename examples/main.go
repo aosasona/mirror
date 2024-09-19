@@ -79,7 +79,9 @@ func main() {
 				Meta: meta.Meta{Name: "created_at", Type: "Date"},
 			}
 
-			target.(*parser.Struct).Fields = append(target.(*parser.Struct).Fields, createdAtField)
+			if target, ok := target.(*parser.Struct); ok {
+				target.Fields = append(target.Fields, createdAtField)
+			}
 		}
 
 		return nil

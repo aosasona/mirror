@@ -7,9 +7,18 @@ import (
 var FieldNameRegex = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
 
 type Meta struct {
+	// OriginalName is the original name of the field in the Go struct
 	OriginalName string
-	Name         string
-	Type         string
-	Optional     bool
-	Skip         bool
+
+	// Name is the name of the field in the target language usually overridden by the user via parser hooks or struct tags
+	Name string
+
+	// Type is the type of the field in the target language usually overridden by the user via parser hooks or struct tags
+	Type string
+
+	// Optional is a flag indicating if the field is optional, depending on the target language, this may or may not be the same as nullable
+	Optional bool
+
+	// Skip is a flag indicating if the field should be skipped during generation
+	Skip bool
 }

@@ -116,6 +116,46 @@ func (s *Struct) IsNullable() bool {
 	return s.Nullable
 }
 
+// Get a field by name (ItemName) from a parsed struct type
+//
+// # Returns pointer to the field or nil and a boolean indicating if the field was found
+//
+// WARNING: the `name` here should be the user-provided name of the field if present (either via tags or hooks), that is; the one that will eventually show up in generated code and not the actual field name in the Go struct.
+// Use `GetFieldByOriginalName` to get the field by its original Go name.
+func (s *Struct) GetField(name string) (*Field, bool) {
+	for _, f := range s.Fields {
+		if (f.Meta.Name != "" && f.Meta.Name == name) || f.ItemName == name {
+			return &f, true
+		}
+	}
+
+	return nil, false
+}
+
+// Get a field's index by name from a parsed struct type
+// Returns the index of the field or -1 if the field was not found
+func (s *Struct) GetFieldIndex(name string) int {
+	for i, f := range s.Fields {
+		if f.ItemName == name {
+			return i
+		}
+	}
+
+	return -1
+}
+
+// Get a field by original name (the field's name in the Go struct) from a parsed struct type
+// Returns pointer to the field or nil and a boolean indicating if the field was found
+func (s *Struct) GetFieldByOriginalName(name string) (*Field, bool) {
+	for _, f := range s.Fields {
+		if f.Meta.OriginalName == name {
+			return &f, true
+		}
+	}
+
+	return nil, false
+}
+
 // PAIR
 func (m *Map) Name() string {
 	return m.ItemName
