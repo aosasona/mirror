@@ -951,6 +951,79 @@ func Test_ParserHooks(t *testing.T) {
 	}
 }
 
+func Test_StrucMethods(t *testing.T) {
+	type (
+		Person struct {
+			FirstName string `mirror:"name:first_name"`
+			LastName  string
+		}
+	)
+
+	p := New()
+	parsed, err := p.Parse(reflect.TypeOf(Person{}))
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	var (
+		parsedStruct *Struct
+		ok           bool
+	)
+	if parsedStruct, ok = parsed.(*Struct); !ok {
+		t.Fatalf("unexpected type: %T", parsed)
+	}
+
+	fname, found := parsedStruct.GetField("first_name")
+	if !found {
+		t.Fatalf("field not found: first_name")
+	}
+
+	if fname.Meta.OriginalName != "FirstName" {
+		t.Errorf("expected original name to be FirstName, got %s", fname.Meta.OriginalName)
+	}
+
+	lname, found := parsedStruct.GetField("LastName")
+	if !found {
+		t.Fatalf("field not found: LastName")
+	}
+
+	if lname.Meta.OriginalName != "LastName" {
+		t.Errorf("expected original name to be LastName, got %s", lname.Meta.OriginalName)
+	}
+
+	fnameIndex := parsedStruct.GetFieldIndex("first_name")
+	if fnameIndex == -1 {
+		t.Fatalf("field index not found but expected: first_name")
+	}
+
+	if fnameIndex != 0 {
+		t.Errorf("expected field index to be 0, got %d", fnameIndex)
+	}
+
+	lnameIndex := parsedStruct.GetFieldIndex("LastName")
+	if lnameIndex == -1 {
+		t.Fatalf("field index not found but expected: LastName")
+	}
+
+	if lnameIndex != 1 {
+		t.Errorf("expected field index to be 1, got %d", lnameIndex)
+	}
+
+	_, found = parsedStruct.GetFieldByOriginalName("first_name")
+	if found {
+		t.Fatalf("expected field not to be found: first_name")
+	}
+
+	lnameByOrig, found := parsedStruct.GetFieldByOriginalName("LastName")
+	if !found {
+		t.Fatalf("field not found: LastName")
+	}
+
+	if lnameByOrig.Meta.OriginalName != "LastName" {
+		t.Errorf("expected original name to be LastName, got %s", lnameByOrig.Meta.OriginalName)
+	}
+}
+
 func runTests(t *testing.T, tests []Test) {
 	for _, tt := range tests {
 		runTest(t, tt)
