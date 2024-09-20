@@ -17,7 +17,7 @@ type ParserInterface interface {
 	ParseN(int) (parser.Item, error)
 
 	// Parses an item that is not parse of the parser's sources (useful for one-off type parsing) and returns the parsed item with an error if any
-	// This is the same parser used internally by the parser to parse sources
+	// This is the simply calling the same `Parse` method used by the parser
 	Parse(reflect.Type) (parser.Item, error)
 
 	// Lookup an type/source by name

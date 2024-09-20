@@ -41,7 +41,7 @@ func Test_ParseItem_Opts(t *testing.T) {
 	for _, tt := range tests {
 		p := New()
 
-		got, err := p.Parse(reflect.TypeOf(tt.Source), tt.Opt)
+		got, err := p.parse(reflect.TypeOf(tt.Source), tt.Opt)
 		if err != nil && !tt.WantErr {
 			t.Errorf("wanted NO error, got error `%s`", tt.Description)
 		}
@@ -936,7 +936,7 @@ func Test_ParserHooks(t *testing.T) {
 	)
 
 	for _, tt := range tests {
-		got, err := p.Parse(reflect.TypeOf(tt.Source))
+		got, err := p.parse(reflect.TypeOf(tt.Source))
 		if err != nil && !tt.WantErr {
 			t.Errorf("[%s] wanted NO error, got error `%s`", tt.Description, err.Error())
 		}
@@ -960,7 +960,7 @@ func Test_StrucMethods(t *testing.T) {
 	)
 
 	p := New()
-	parsed, err := p.Parse(reflect.TypeOf(Person{}))
+	parsed, err := p.parse(reflect.TypeOf(Person{}))
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
@@ -1034,7 +1034,7 @@ func runTest(t *testing.T, tt Test) {
 	p := New()
 	p.SetFlattenEmbeddedTypes(true) // TODO: make this better
 
-	got, err := p.Parse(reflect.TypeOf(tt.Source))
+	got, err := p.parse(reflect.TypeOf(tt.Source))
 	if err != nil && !tt.WantErr {
 		t.Errorf("[%s] wanted NO error, got error `%s`", tt.Description, err.Error())
 	}
