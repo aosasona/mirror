@@ -13,6 +13,12 @@ type ParserInterface interface {
 	// Add multiple sources to the parser
 	AddSources(...reflect.Type) error
 
+	// Register a custom type with the parser
+	AddCustomType(string, parser.Item) error
+
+	// Register multiple custom types with the parser
+	AddCustomTypes([]parser.CustomType) error
+
 	// Parse the nth source in the list
 	ParseN(int) (parser.Item, error)
 
