@@ -23,6 +23,9 @@ const (
 	TypeMap    Type = "map"
 
 	TypeFunction Type = "function"
+
+	TypeVoid Type = "void"
+	TypeNil  Type = "nil"
 )
 
 // General interface to be adopted by anything that can or should be represented as an item

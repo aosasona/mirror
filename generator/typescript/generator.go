@@ -204,6 +204,13 @@ func (g *Generator) getScalarRepresentation(mirrorType parser.Type) string {
 	case parser.TypeTimestamp:
 		typeValue = "string"
 		// typeValue = "Date" // TODO: generate code to automatically handle this on the TS side if need be in the future like TypeByte
+
+	// No-oop types
+	case parser.TypeVoid:
+		typeValue = "void"
+	case parser.TypeNil:
+		typeValue = "null"
+
 	default:
 		return ""
 	}
