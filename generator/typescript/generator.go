@@ -52,10 +52,6 @@ func (g *Generator) SetNonStrict(strict bool) {
 
 // SetHeaderText sets the header text for the generated file
 func (g *Generator) SetHeaderText(header string) {
-	if strings.TrimSpace(header) == "" {
-		return
-	}
-
 	fileHeader = header
 }
 
