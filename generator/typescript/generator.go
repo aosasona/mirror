@@ -349,7 +349,7 @@ func (g *Generator) generateList(item *parser.List) (string, error) {
 		}
 	} else {
 		// Ensure the referenced type exists before proceeding
-		if !g.referenceExists(item.BaseItem.Name()) {
+		if !g.config.InlineObjects && !g.referenceExists(item.BaseItem.Name()) {
 			return "", fmt.Errorf("referenced type `%s` does not exist, you need to either enable inline objects or pass in the referenced type", item.BaseItem.Name())
 		}
 
