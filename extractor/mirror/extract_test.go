@@ -1,10 +1,11 @@
-package mirrormeta
+package mirrormeta_test
 
 import (
 	"reflect"
 	"testing"
 
 	"go.trulyao.dev/mirror/v2/extractor/meta"
+	mirrormeta "go.trulyao.dev/mirror/v2/extractor/mirror"
 )
 
 type TestStruct struct {
@@ -114,7 +115,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, err := Extract(test.Source, nil)
+		got, err := mirrormeta.Extract(test.Source, nil)
 
 		if err != nil && !test.WantErr {
 			t.Errorf("[%s] wanted NO error, got error: %v", test.Name, err)

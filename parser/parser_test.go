@@ -1,4 +1,4 @@
-package parser
+package parser_test
 
 import (
 	"database/sql"
@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"go.trulyao.dev/mirror/v2/extractor/meta"
+	"go.trulyao.dev/mirror/v2/parser"
 )
 
 type Test struct {
 	Description string
 	Source      any
-	Expected    Item
+	Expected    parser.Item
 	WantErr     bool
 }
 
@@ -20,9 +21,9 @@ func Test_ParseItem_Opts(t *testing.T) {
 	type (
 		OptTest struct {
 			Description string
-			Opt         Options
+			Opt         parser.Options
 			Source      any
-			Expected    Item
+			Expected    parser.Item
 			WantErr     bool
 		}
 
@@ -32,16 +33,16 @@ func Test_ParseItem_Opts(t *testing.T) {
 	tests := []OptTest{
 		{
 			Description: "parse integer with nullable overridden to true",
-			Opt:         Options{OverrideNullable: true},
+			Opt:         parser.Options{OverrideNullable: true},
 			Source:      *new(Foo),
-			Expected:    &Scalar{"Foo", TypeInteger, true},
+			Expected:    &parser.Scalar{"Foo", parser.TypeInteger, true},
 		},
 	}
 
 	for _, tt := range tests {
-		p := New()
+		p := parser.New()
 
-		got, err := p.parse(reflect.TypeOf(tt.Source), tt.Opt)
+		got, err := p.ParseWithOpts(reflect.TypeOf(tt.Source), tt.Opt)
 		if err != nil && !tt.WantErr {
 			t.Errorf("wanted NO error, got error `%s`", tt.Description)
 		}
@@ -78,47 +79,47 @@ func Test_ParseItem_Scalar(t *testing.T) {
 		{
 			Description: "parse integer",
 			Source:      *new(Foo),
-			Expected:    &Scalar{"Foo", TypeInteger, false},
+			Expected:    &parser.Scalar{"Foo", parser.TypeInteger, false},
 		},
 		{
 			Description: "parse i8",
 			Source:      *new(Foo8),
-			Expected:    &Scalar{"Foo8", TypeInteger, false},
+			Expected:    &parser.Scalar{"Foo8", parser.TypeInteger, false},
 		},
 		{
 			Description: "parse i16",
 			Source:      *new(Foo16),
-			Expected:    &Scalar{"Foo16", TypeInteger, false},
+			Expected:    &parser.Scalar{"Foo16", parser.TypeInteger, false},
 		},
 		{
 			Description: "parse i32",
 			Source:      *new(Foo32),
-			Expected:    &Scalar{"Foo32", TypeInteger, false},
+			Expected:    &parser.Scalar{"Foo32", parser.TypeInteger, false},
 		},
 		{
 			Description: "parse i64",
 			Source:      *new(Foo64),
-			Expected:    &Scalar{"Foo64", TypeInteger, false},
+			Expected:    &parser.Scalar{"Foo64", parser.TypeInteger, false},
 		},
 		{
 			Description: "parse f32",
 			Source:      *new(Float32),
-			Expected:    &Scalar{"Float32", TypeFloat, false},
+			Expected:    &parser.Scalar{"Float32", parser.TypeFloat, false},
 		},
 		{
 			Description: "parse f64",
 			Source:      *new(Float64),
-			Expected:    &Scalar{"Float64", TypeFloat, false},
+			Expected:    &parser.Scalar{"Float64", parser.TypeFloat, false},
 		},
 		{
 			Description: "parse string",
 			Source:      *new(Language),
-			Expected:    &Scalar{"Language", TypeString, false},
+			Expected:    &parser.Scalar{"Language", parser.TypeString, false},
 		},
 		{
 			Description: "parse boolean",
 			Source:      *new(IsEnabled),
-			Expected:    &Scalar{"IsEnabled", TypeBoolean, false},
+			Expected:    &parser.Scalar{"IsEnabled", parser.TypeBoolean, false},
 		},
 	}
 
@@ -140,50 +141,50 @@ func Test_ParseItem_Map(t *testing.T) {
 		{
 			Description: "parse <string, string> map",
 			Source:      StringString{},
-			Expected: &Map{
+			Expected: &parser.Map{
 				"StringString",
-				&Scalar{"string", TypeString, false},
-				&Scalar{"string", TypeString, false},
+				&parser.Scalar{"string", parser.TypeString, false},
+				&parser.Scalar{"string", parser.TypeString, false},
 				false,
 			},
 		},
 		{
 			Description: "parse <string, int> map",
 			Source:      StringInt{},
-			Expected: &Map{
+			Expected: &parser.Map{
 				"StringInt",
-				&Scalar{"string", TypeString, false},
-				&Scalar{"int", TypeInteger, false},
+				&parser.Scalar{"string", parser.TypeString, false},
+				&parser.Scalar{"int", parser.TypeInteger, false},
 				false,
 			},
 		},
 		{
 			Description: "parse <string, float32> map",
 			Source:      StringFloat{},
-			Expected: &Map{
+			Expected: &parser.Map{
 				"StringFloat",
-				&Scalar{"string", TypeString, false},
-				&Scalar{"float32", TypeFloat, false},
+				&parser.Scalar{"string", parser.TypeString, false},
+				&parser.Scalar{"float32", parser.TypeFloat, false},
 				false,
 			},
 		},
 		{
 			Description: "parse <*string, *string> map",
 			Source:      PtrStr{},
-			Expected: &Map{
+			Expected: &parser.Map{
 				"PtrStr",
-				&Scalar{"string", TypeString, true},
-				&Scalar{"string", TypeString, true},
+				&parser.Scalar{"string", parser.TypeString, true},
+				&parser.Scalar{"string", parser.TypeString, true},
 				false,
 			},
 		},
 		{
 			Description: "parse <string, *string> map",
 			Source:      ValuePtrStr{},
-			Expected: &Map{
+			Expected: &parser.Map{
 				"ValuePtrStr",
-				&Scalar{"string", TypeString, false},
-				&Scalar{"string", TypeString, true},
+				&parser.Scalar{"string", parser.TypeString, false},
+				&parser.Scalar{"string", parser.TypeString, true},
 				false,
 			},
 		},
@@ -212,12 +213,12 @@ func Test_ParseItem_Struct(t *testing.T) {
 		{
 			Description: "parse Person struct",
 			Source:      Person{},
-			Expected: &Struct{
+			Expected: &parser.Struct{
 				"Person",
-				[]Field{
+				[]parser.Field{
 					{
 						ItemName: "FirstName",
-						BaseItem: &Scalar{"string", TypeString, false},
+						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "FirstName",
 							Name:         "FirstName",
@@ -229,7 +230,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 
 					{
 						ItemName: "LastName",
-						BaseItem: &Scalar{"string", TypeString, false},
+						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "LastName",
 							Name:         "LastName",
@@ -246,12 +247,12 @@ func Test_ParseItem_Struct(t *testing.T) {
 		{
 			Description: "parse User struct with JSON meta",
 			Source:      User{},
-			Expected: &Struct{
+			Expected: &parser.Struct{
 				ItemName: "User",
-				Fields: []Field{
+				Fields: []parser.Field{
 					{
 						ItemName: "uname",
-						BaseItem: &Scalar{"string", TypeString, false},
+						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "Username",
 							Name:         "uname",
@@ -263,7 +264,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 
 					{
 						ItemName: "pass",
-						BaseItem: &Scalar{"string", TypeString, false},
+						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "Password",
 							Name:         "pass",
@@ -280,17 +281,17 @@ func Test_ParseItem_Struct(t *testing.T) {
 		{
 			Description: "parse Account struct with mirror meta and pointer field",
 			Source:      Account{},
-			Expected: &Struct{
+			Expected: &parser.Struct{
 				ItemName: "Account",
-				Fields: []Field{
+				Fields: []parser.Field{
 					{
 						ItemName: "linked_user",
-						BaseItem: &Struct{
+						BaseItem: &parser.Struct{
 							ItemName: "User",
-							Fields: []Field{
+							Fields: []parser.Field{
 								{
 									ItemName: "uname",
-									BaseItem: &Scalar{"string", TypeString, false},
+									BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 									Meta: meta.Meta{
 										OriginalName: "Username",
 										Name:         "uname",
@@ -302,7 +303,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 
 								{
 									ItemName: "pass",
-									BaseItem: &Scalar{"string", TypeString, false},
+									BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 									Meta: meta.Meta{
 										OriginalName: "Password",
 										Name:         "pass",
@@ -325,7 +326,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 
 					{
 						ItemName: "created_at",
-						BaseItem: &Scalar{"int", TypeInteger, false},
+						BaseItem: &parser.Scalar{"int", parser.TypeInteger, false},
 						Meta: meta.Meta{
 							OriginalName: "CreatedAt",
 							Name:         "created_at",
@@ -366,11 +367,11 @@ func Test_ParseItem_List(t *testing.T) {
 		{
 			Description: "parse []string",
 			Source:      Strings{},
-			Expected: &List{
+			Expected: &parser.List{
 				ItemName: "Strings",
-				BaseItem: &Scalar{"string", TypeString, false},
+				BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 				Nullable: false,
-				Length:   EmptyLength,
+				Length:   parser.EmptyLength,
 			},
 		},
 
@@ -378,11 +379,11 @@ func Test_ParseItem_List(t *testing.T) {
 		{
 			Description: "parse []ints",
 			Source:      Ints{},
-			Expected: &List{
+			Expected: &parser.List{
 				ItemName: "Ints",
-				BaseItem: &Scalar{"int", TypeInteger, false},
+				BaseItem: &parser.Scalar{"int", parser.TypeInteger, false},
 				Nullable: false,
-				Length:   EmptyLength,
+				Length:   parser.EmptyLength,
 			},
 		},
 
@@ -390,11 +391,11 @@ func Test_ParseItem_List(t *testing.T) {
 		{
 			Description: "parse []floats",
 			Source:      Floats{},
-			Expected: &List{
+			Expected: &parser.List{
 				ItemName: "Floats",
-				BaseItem: &Scalar{"float32", TypeFloat, false},
+				BaseItem: &parser.Scalar{"float32", parser.TypeFloat, false},
 				Nullable: false,
-				Length:   EmptyLength,
+				Length:   parser.EmptyLength,
 			},
 		},
 
@@ -402,14 +403,14 @@ func Test_ParseItem_List(t *testing.T) {
 		{
 			Description: "parse []structs",
 			Source:      Structs{},
-			Expected: &List{
+			Expected: &parser.List{
 				ItemName: "Structs",
-				BaseItem: &Struct{
+				BaseItem: &parser.Struct{
 					ItemName: "CustomType",
-					Fields: []Field{
+					Fields: []parser.Field{
 						{
 							ItemName: "Name",
-							BaseItem: &Scalar{"string", TypeString, false},
+							BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 							Meta: meta.Meta{
 								OriginalName: "Name",
 								Name:         "Name",
@@ -421,7 +422,7 @@ func Test_ParseItem_List(t *testing.T) {
 					},
 				},
 				Nullable: false,
-				Length:   EmptyLength,
+				Length:   parser.EmptyLength,
 			},
 		},
 
@@ -429,11 +430,11 @@ func Test_ParseItem_List(t *testing.T) {
 		{
 			Description: "parse []*string",
 			Source:      StringPtrs{},
-			Expected: &List{
+			Expected: &parser.List{
 				ItemName: "StringPtrs",
-				BaseItem: &Scalar{"string", TypeString, true},
+				BaseItem: &parser.Scalar{"string", parser.TypeString, true},
 				Nullable: false,
-				Length:   EmptyLength,
+				Length:   parser.EmptyLength,
 			},
 		},
 
@@ -441,16 +442,16 @@ func Test_ParseItem_List(t *testing.T) {
 		{
 			Description: "parse [][]int",
 			Source:      ListList{},
-			Expected: &List{
+			Expected: &parser.List{
 				ItemName: "ListList",
-				BaseItem: &List{
+				BaseItem: &parser.List{
 					ItemName: "", // The inner list has no name
-					BaseItem: &Scalar{"int", TypeInteger, false},
-					Length:   EmptyLength,
+					BaseItem: &parser.Scalar{"int", parser.TypeInteger, false},
+					Length:   parser.EmptyLength,
 					Nullable: false,
 				},
 				Nullable: false,
-				Length:   EmptyLength,
+				Length:   parser.EmptyLength,
 			},
 		},
 
@@ -458,11 +459,11 @@ func Test_ParseItem_List(t *testing.T) {
 		{
 			Description: "parse *[]int",
 			Source:      *new(ListPtr), // new(ListPtr) returns a pointer to a nil slice, that is intentionally unhandled by the parser and will return an error for now
-			Expected: &List{
+			Expected: &parser.List{
 				ItemName: "",
-				BaseItem: &Scalar{"int", TypeInteger, false},
+				BaseItem: &parser.Scalar{"int", parser.TypeInteger, false},
 				Nullable: true,
-				Length:   EmptyLength,
+				Length:   parser.EmptyLength,
 			},
 		},
 
@@ -470,13 +471,13 @@ func Test_ParseItem_List(t *testing.T) {
 		{
 			Description: "parse []*[]int",
 			Source:      ListPtrs{},
-			Expected: &List{
+			Expected: &parser.List{
 				ItemName: "ListPtrs",
-				Length:   EmptyLength,
-				BaseItem: &List{
+				Length:   parser.EmptyLength,
+				BaseItem: &parser.List{
 					ItemName: "",
-					BaseItem: &Scalar{"int", TypeInteger, false},
-					Length:   EmptyLength,
+					BaseItem: &parser.Scalar{"int", parser.TypeInteger, false},
+					Length:   parser.EmptyLength,
 					Nullable: true,
 				},
 			},
@@ -486,9 +487,9 @@ func Test_ParseItem_List(t *testing.T) {
 		{
 			Description: "parse [3]string",
 			Source:      FixedStrings{},
-			Expected: &List{
+			Expected: &parser.List{
 				ItemName: "FixedStrings",
-				BaseItem: &Scalar{"string", TypeString, false},
+				BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 				Length:   3,
 				Nullable: false,
 			},
@@ -498,14 +499,14 @@ func Test_ParseItem_List(t *testing.T) {
 		{
 			Description: "parse [8]structs",
 			Source:      FixedStructs{},
-			Expected: &List{
+			Expected: &parser.List{
 				ItemName: "FixedStructs",
-				BaseItem: &Struct{
+				BaseItem: &parser.Struct{
 					ItemName: "CustomType",
-					Fields: []Field{
+					Fields: []parser.Field{
 						{
 							ItemName: "Name",
-							BaseItem: &Scalar{"string", TypeString, false},
+							BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 							Meta: meta.Meta{
 								OriginalName: "Name",
 								Name:         "Name",
@@ -525,9 +526,9 @@ func Test_ParseItem_List(t *testing.T) {
 		{
 			Description: "parse [6]*int",
 			Source:      FixedIntPtrs{},
-			Expected: &List{
+			Expected: &parser.List{
 				ItemName: "FixedIntPtrs",
-				BaseItem: &Scalar{"int", TypeInteger, true},
+				BaseItem: &parser.Scalar{"int", parser.TypeInteger, true},
 				Length:   6,
 				Nullable: false,
 			},
@@ -552,10 +553,10 @@ func Test_ParseItem_Function(t *testing.T) {
 		{
 			Description: "parse func() error",
 			Source:      Func1(nil),
-			Expected: &Function{
+			Expected: &parser.Function{
 				ItemName: "Func1",
-				Params:   []Item{},
-				Returns:  []Item{&Scalar{"error", TypeString, false}},
+				Params:   []parser.Item{},
+				Returns:  []parser.Item{&parser.Scalar{"error", parser.TypeString, false}},
 				Nullable: false,
 			},
 		},
@@ -564,13 +565,13 @@ func Test_ParseItem_Function(t *testing.T) {
 		{
 			Description: "parse func(int, int) int",
 			Source:      Add(nil),
-			Expected: &Function{
+			Expected: &parser.Function{
 				ItemName: "Add",
-				Params: []Item{
-					&Scalar{"int", TypeInteger, false},
-					&Scalar{"int", TypeInteger, false},
+				Params: []parser.Item{
+					&parser.Scalar{"int", parser.TypeInteger, false},
+					&parser.Scalar{"int", parser.TypeInteger, false},
 				},
-				Returns:  []Item{&Scalar{"int", TypeInteger, false}},
+				Returns:  []parser.Item{&parser.Scalar{"int", parser.TypeInteger, false}},
 				Nullable: false,
 			},
 		},
@@ -579,15 +580,15 @@ func Test_ParseItem_Function(t *testing.T) {
 		{
 			Description: "parse func(string, string) (int, error)",
 			Source:      ReturnMultiple(nil),
-			Expected: &Function{
+			Expected: &parser.Function{
 				ItemName: "ReturnMultiple",
-				Params: []Item{
-					&Scalar{"string", TypeString, false},
-					&Scalar{"string", TypeString, true},
+				Params: []parser.Item{
+					&parser.Scalar{"string", parser.TypeString, false},
+					&parser.Scalar{"string", parser.TypeString, true},
 				},
-				Returns: []Item{
-					&Scalar{"int", TypeInteger, false},
-					&Scalar{"error", TypeString, false},
+				Returns: []parser.Item{
+					&parser.Scalar{"int", parser.TypeInteger, false},
+					&parser.Scalar{"error", parser.TypeString, false},
 				},
 				Nullable: false,
 			},
@@ -597,15 +598,15 @@ func Test_ParseItem_Function(t *testing.T) {
 		{
 			Description: "parse func(Foo) error",
 			Source:      InsertFoo(nil),
-			Expected: &Function{
+			Expected: &parser.Function{
 				ItemName: "InsertFoo",
-				Params: []Item{
-					&Struct{
+				Params: []parser.Item{
+					&parser.Struct{
 						ItemName: "Foo",
-						Fields: []Field{
+						Fields: []parser.Field{
 							{
 								ItemName: "Name",
-								BaseItem: &Scalar{"string", TypeString, false},
+								BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 								Meta: meta.Meta{
 									OriginalName: "Name",
 									Name:         "Name",
@@ -618,7 +619,7 @@ func Test_ParseItem_Function(t *testing.T) {
 						Nullable: false,
 					},
 				},
-				Returns:  []Item{&Scalar{"error", TypeString, false}},
+				Returns:  []parser.Item{&parser.Scalar{"error", parser.TypeString, false}},
 				Nullable: false,
 			},
 		},
@@ -649,12 +650,12 @@ func Test_ParseEmbeddedStruct(t *testing.T) {
 		{
 			Description: "parse embedded struct",
 			Source:      FooParent{},
-			Expected: &Struct{
+			Expected: &parser.Struct{
 				ItemName: "FooParent",
-				Fields: []Field{
+				Fields: []parser.Field{
 					{
 						ItemName: "Name",
-						BaseItem: &Scalar{"string", TypeString, false},
+						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "Name",
 							Name:         "Name",
@@ -665,7 +666,7 @@ func Test_ParseEmbeddedStruct(t *testing.T) {
 					},
 					{
 						ItemName: "Age",
-						BaseItem: &Scalar{"int", TypeInteger, false},
+						BaseItem: &parser.Scalar{"int", parser.TypeInteger, false},
 						Meta: meta.Meta{
 							OriginalName: "Age",
 							Name:         "Age",
@@ -681,12 +682,12 @@ func Test_ParseEmbeddedStruct(t *testing.T) {
 		{
 			Description: "parse struct with embedded non-struct type",
 			Source:      FooWithEmbeddedString{},
-			Expected: &Struct{
+			Expected: &parser.Struct{
 				ItemName: "FooWithEmbeddedString",
-				Fields: []Field{
+				Fields: []parser.Field{
 					{
 						ItemName: "embedded_string",
-						BaseItem: &Scalar{"EmbeddedString", TypeString, false},
+						BaseItem: &parser.Scalar{"EmbeddedString", parser.TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "EmbeddedString",
 							Name:         "embedded_string",
@@ -698,7 +699,7 @@ func Test_ParseEmbeddedStruct(t *testing.T) {
 
 					{
 						ItemName: "EmbeddedInt",
-						BaseItem: &Scalar{"EmbeddedInt", TypeInteger, true},
+						BaseItem: &parser.Scalar{"EmbeddedInt", parser.TypeInteger, true},
 						Meta: meta.Meta{
 							OriginalName: "EmbeddedInt",
 							Name:         "EmbeddedInt",
@@ -710,7 +711,7 @@ func Test_ParseEmbeddedStruct(t *testing.T) {
 
 					{
 						ItemName: "probably",
-						BaseItem: &Scalar{"EmbeddedBool", TypeBoolean, true},
+						BaseItem: &parser.Scalar{"EmbeddedBool", parser.TypeBoolean, true},
 						Meta: meta.Meta{
 							OriginalName: "EmbeddedBool",
 							Name:         "probably",
@@ -737,32 +738,32 @@ func Test_ParseBuiltInTypes(t *testing.T) {
 		{
 			Description: "parse time.Time",
 			Source:      time.Time{},
-			Expected:    &Scalar{"Time", TypeTimestamp, false},
+			Expected:    &parser.Scalar{"Time", parser.TypeTimestamp, false},
 		},
 
 		{
 			Description: "parse nullable time.Time",
 			Source:      &time.Time{},
-			Expected:    &Scalar{"Time", TypeTimestamp, true},
+			Expected:    &parser.Scalar{"Time", parser.TypeTimestamp, true},
 		},
 
 		{
 			Description: "parse []time.Time",
 			Source:      TimeSlice{},
-			Expected: &List{
+			Expected: &parser.List{
 				"TimeSlice",
-				&Scalar{"Time", TypeTimestamp, false},
+				&parser.Scalar{"Time", parser.TypeTimestamp, false},
 				false,
-				EmptyLength,
+				parser.EmptyLength,
 			},
 		},
 
 		{
 			Description: "parse []time.Time",
 			Source:      &TimeArray{},
-			Expected: &List{
+			Expected: &parser.List{
 				"TimeArray",
-				&Scalar{"Time", TypeTimestamp, false},
+				&parser.Scalar{"Time", parser.TypeTimestamp, false},
 				true,
 				3,
 			},
@@ -771,25 +772,25 @@ func Test_ParseBuiltInTypes(t *testing.T) {
 		{
 			Description: "parse time.Duration",
 			Source:      time.Duration(0),
-			Expected:    &Scalar{"Duration", TypeInteger, false},
+			Expected:    &parser.Scalar{"Duration", parser.TypeInteger, false},
 		},
 
 		{
 			Description: "parse nullable time.Duration",
 			Source:      new(time.Duration),
-			Expected:    &Scalar{"Duration", TypeInteger, true},
+			Expected:    &parser.Scalar{"Duration", parser.TypeInteger, true},
 		},
 
 		{
 			Description: "parse sql.NullTime",
 			Source:      sql.NullTime{},
-			Expected:    &Scalar{"NullTime", TypeTimestamp, true},
+			Expected:    &parser.Scalar{"NullTime", parser.TypeTimestamp, true},
 		},
 
 		{
 			Description: "parse sql.NullInt64",
 			Source:      sql.NullInt64{},
-			Expected:    &Scalar{"NullInt64", TypeInteger, true},
+			Expected:    &parser.Scalar{"NullInt64", parser.TypeInteger, true},
 		},
 	}
 
@@ -816,12 +817,12 @@ func Test_ParserHooks(t *testing.T) {
 		{
 			Description: "parse struct with OnParseItem hook, add a new field",
 			Source:      TargetFoo{},
-			Expected: &Struct{
+			Expected: &parser.Struct{
 				ItemName: "TargetFoo",
-				Fields: []Field{
+				Fields: []parser.Field{
 					{
 						ItemName: "Name",
-						BaseItem: &Scalar{"string", TypeString, false},
+						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "Name",
 							Name:         "Name",
@@ -834,7 +835,7 @@ func Test_ParserHooks(t *testing.T) {
 					// Added dynamically
 					{
 						ItemName: "Age",
-						BaseItem: &Scalar{"int", TypeInteger, false},
+						BaseItem: &parser.Scalar{"int", parser.TypeInteger, false},
 						Meta: meta.Meta{
 							OriginalName: "Age",
 							Name:         "AddedAge",
@@ -850,12 +851,12 @@ func Test_ParserHooks(t *testing.T) {
 		{
 			Description: "parse struct with OnParseItem hook, do not add a new field",
 			Source:      NotTargetFoo{},
-			Expected: &Struct{
+			Expected: &parser.Struct{
 				ItemName: "NotTargetFoo",
-				Fields: []Field{
+				Fields: []parser.Field{
 					{
 						ItemName: "Name",
-						BaseItem: &Scalar{"string", TypeString, false},
+						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "Name",
 							Name:         "Name",
@@ -871,12 +872,12 @@ func Test_ParserHooks(t *testing.T) {
 		{
 			Description: "parse struct with OnParseField hook, renaming FirstName to FName",
 			Source:      Person{},
-			Expected: &Struct{
+			Expected: &parser.Struct{
 				ItemName: "Person",
-				Fields: []Field{
+				Fields: []parser.Field{
 					{
 						ItemName: "FName",
-						BaseItem: &Scalar{"string", TypeString, false},
+						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "FirstName",
 							Name:         "FName",
@@ -888,7 +889,7 @@ func Test_ParserHooks(t *testing.T) {
 
 					{
 						ItemName: "LastName",
-						BaseItem: &Scalar{"string", TypeString, false},
+						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "LastName",
 							Name:         "LastName",
@@ -902,15 +903,15 @@ func Test_ParserHooks(t *testing.T) {
 		},
 	}
 
-	p := New()
+	p := parser.New()
 	p.SetFlattenEmbeddedTypes(true)
 
-	p.OnParseItem(func(name string, item Item) error {
+	p.OnParseItem(func(name string, item parser.Item) error {
 		// Add a new field to the struct if the name is "TargetFoo"
 		if name == "TargetFoo" {
-			item.(*Struct).Fields = append(item.(*Struct).Fields, Field{
+			item.(*parser.Struct).Fields = append(item.(*parser.Struct).Fields, parser.Field{
 				ItemName: "Age",
-				BaseItem: &Scalar{"int", TypeInteger, false},
+				BaseItem: &parser.Scalar{"int", parser.TypeInteger, false},
 				Meta: meta.Meta{
 					OriginalName: "Age",
 					Name:         "AddedAge",
@@ -925,7 +926,7 @@ func Test_ParserHooks(t *testing.T) {
 	})
 
 	p.OnParseField(
-		func(parentType *reflect.Type, originalField *reflect.StructField, field *Field) error {
+		func(parentType *reflect.Type, originalField *reflect.StructField, field *parser.Field) error {
 			// Modify the field if the original name is "FirstName"
 			if field.Meta.OriginalName == "FirstName" {
 				field.Meta.Name = "FName"
@@ -937,7 +938,7 @@ func Test_ParserHooks(t *testing.T) {
 	)
 
 	for _, tt := range tests {
-		got, err := p.parse(reflect.TypeOf(tt.Source))
+		got, err := p.Parse(reflect.TypeOf(tt.Source))
 		if err != nil && !tt.WantErr {
 			t.Errorf("[%s] wanted NO error, got error `%s`", tt.Description, err.Error())
 		}
@@ -960,17 +961,17 @@ func Test_StrucMethods(t *testing.T) {
 		}
 	)
 
-	p := New()
-	parsed, err := p.parse(reflect.TypeOf(Person{}))
+	p := parser.New()
+	parsed, err := p.Parse(reflect.TypeOf(Person{}))
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
 	var (
-		parsedStruct *Struct
+		parsedStruct *parser.Struct
 		ok           bool
 	)
-	if parsedStruct, ok = parsed.(*Struct); !ok {
+	if parsedStruct, ok = parsed.(*parser.Struct); !ok {
 		t.Fatalf("unexpected type: %T", parsed)
 	}
 
@@ -1036,14 +1037,14 @@ func Test_ParseCustomItem(t *testing.T) {
 	)
 
 	var (
-		internalScalarItem = &Scalar{"overriden_scalar_type", TypeVoid, false}
+		internalScalarItem = &parser.Scalar{"overriden_scalar_type", parser.TypeVoid, false}
 
-		internalStructItem = &Struct{
+		internalStructItem = &parser.Struct{
 			ItemName: "overriden_struct_type",
-			Fields: []Field{
+			Fields: []parser.Field{
 				{
 					ItemName: "name",
-					BaseItem: &Scalar{"string", TypeString, false},
+					BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 					Meta:     meta.Meta{},
 				},
 			},
@@ -1066,12 +1067,12 @@ func Test_ParseCustomItem(t *testing.T) {
 		{
 			Description: "parse unregistered custom type",
 			Source:      __internal_unregistered_type(""),
-			Expected:    &Scalar{"__internal_unregistered_type", TypeString, false},
+			Expected:    &parser.Scalar{"__internal_unregistered_type", parser.TypeString, false},
 		},
 	}
 
-	p := New()
-	p.AddCustomTypes([]CustomType{
+	p := parser.New()
+	p.AddCustomTypes([]parser.CustomType{
 		{"__internal_scalar_type", internalScalarItem},
 		{"__internal_struct_type", internalStructItem},
 	})
@@ -1079,23 +1080,23 @@ func Test_ParseCustomItem(t *testing.T) {
 	runTests(t, tests, p)
 }
 
-func runTests(t *testing.T, tests []Test, parser ...*Parser) {
+func runTests(t *testing.T, tests []Test, optParser ...*parser.Parser) {
 	for _, tt := range tests {
-		runTest(t, tt, parser...)
+		runTest(t, tt, optParser...)
 	}
 }
 
-func runTest(t *testing.T, tt Test, parser ...*Parser) {
-	var p *Parser
+func runTest(t *testing.T, tt Test, optParse ...*parser.Parser) {
+	var p *parser.Parser
 
-	if len(parser) > 0 {
-		p = parser[0]
+	if len(optParse) > 0 {
+		p = optParse[0]
 	} else {
-		p = New()
+		p = parser.New()
 		p.SetFlattenEmbeddedTypes(true) // TODO: make this better
 	}
 
-	got, err := p.parse(reflect.TypeOf(tt.Source))
+	got, err := p.Parse(reflect.TypeOf(tt.Source))
 	if err != nil && !tt.WantErr {
 		t.Errorf("[%s] wanted NO error, got error `%s`", tt.Description, err.Error())
 	}
