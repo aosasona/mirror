@@ -11,6 +11,9 @@ import (
 
 // Config is the configuration for the typescript generator, it also implements the types.TargetInterface and is used to define a Typescript target
 type Config struct {
+	// The generator for the current instance
+	generator *Generator
+
 	// FileName is the name of the generated file
 	FileName string
 
@@ -179,7 +182,11 @@ func (c *Config) AddCustomType(name, value string) {
 
 // Generator returns a new Generator for the current language with the config
 func (c *Config) Generator() types.GeneratorInterface {
-	return NewGenerator(c)
+	if c.generator == nil {
+		c.generator = NewGenerator(c)
+	}
+
+	return c.generator
 }
 
 // Validate() checks if the config is valid and passes as a valid target
