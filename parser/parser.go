@@ -85,7 +85,7 @@ func (p *Parser) SetConfig(config Config) error {
 func (p *Parser) LookupByName(name string) (Item, bool) {
 	for _, source := range p.sources {
 		if source.Name() == name {
-			item, err := p.parse(source)
+			item, err := p.ParseWithOpts(source)
 			if err != nil {
 				return nil, false
 			}
@@ -186,14 +186,14 @@ func (p *Parser) Next() (Item, error) {
 	source := p.sources[0]
 	p.sources = p.sources[1:]
 
-	return p.parse(source)
+	return p.ParseWithOpts(source)
 }
 
 // Iterate over all sources and call the function `f` on each source
 // Unlike `Next`, this function does not consume the sources and can be called multiple times
 func (p *Parser) Iterate(f func(Item) error) error {
 	for _, source := range p.sources {
-		item, err := p.parse(source)
+		item, err := p.ParseWithOpts(source)
 		if err != nil {
 			return err
 		}
@@ -236,12 +236,12 @@ func (p *Parser) ParseN(n int) (Item, error) {
 
 	source := p.sources[n]
 
-	return p.parse(source)
+	return p.ParseWithOpts(source)
 }
 
 // The public (interface) method to parse a type
 func (p *Parser) Parse(source reflect.Type) (Item, error) {
-	return p.parse(source)
+	return p.ParseWithOpts(source)
 }
 
 // Converts a type to an `Item` type that can be passed to generators
@@ -266,13 +266,13 @@ func (p *Parser) Parse(source reflect.Type) (Item, error) {
 //			      Baz string
 //		   }
 //
-//		  parser.parse(reflect.TypeOf(Bar{}), parser.Options{
+//		  parser.ParseWithOpts(reflect.TypeOf(Bar{}), parser.Options{
 //	       OverrideNullable: false
 //	   })
 //	}
 //
 // ```
-func (p *Parser) parse(source reflect.Type, opts ...Options) (Item, error) {
+func (p *Parser) ParseWithOpts(source reflect.Type, opts ...Options) (Item, error) {
 	cacheKey := base64.StdEncoding.EncodeToString(
 		[]byte(source.PkgPath() + ":" + source.Name()),
 	)
@@ -357,7 +357,7 @@ func (p *Parser) parse(source reflect.Type, opts ...Options) (Item, error) {
 		item, err = p.parseFunc(source, nullable)
 
 	case reflect.Pointer:
-		item, err = p.parse(source.Elem(), Options{OverrideNullable: true})
+		item, err = p.ParseWithOpts(source.Elem(), Options{OverrideNullable: true})
 
 	case reflect.Interface:
 		item, err = p.parseInterface(source, nullable)
@@ -479,7 +479,7 @@ func (p *Parser) parseStruct(source reflect.Type, nullable bool) (*Struct, error
 		// If it is embedded, parse it as part of the original struct (flatten it)
 		if p.flattenEmbeddedTypes && sourceField.Anonymous &&
 			sourceField.Type.Kind() == reflect.Struct {
-			item, err := p.parse(sourceField.Type)
+			item, err := p.ParseWithOpts(sourceField.Type)
 			if err != nil {
 				return &Struct{}, err
 			}
@@ -512,7 +512,7 @@ func (p *Parser) parseStruct(source reflect.Type, nullable bool) (*Struct, error
 			return &Struct{}, err
 		}
 
-		item, err := p.parse(sourceField.Type)
+		item, err := p.ParseWithOpts(sourceField.Type)
 		if err != nil {
 			return &Struct{}, err
 		}
@@ -530,12 +530,12 @@ func (p *Parser) parseStruct(source reflect.Type, nullable bool) (*Struct, error
 
 // Parse a map type
 func (p *Parser) parseMap(source reflect.Type, nullable bool) (*Map, error) {
-	keyItem, err := p.parse(source.Key())
+	keyItem, err := p.ParseWithOpts(source.Key())
 	if err != nil {
 		return &Map{}, err
 	}
 
-	valueItem, err := p.parse(source.Elem())
+	valueItem, err := p.ParseWithOpts(source.Elem())
 	if err != nil {
 		return &Map{}, err
 	}
@@ -545,7 +545,7 @@ func (p *Parser) parseMap(source reflect.Type, nullable bool) (*Map, error) {
 
 // Parse a list type (slice or array)
 func (p *Parser) parseList(source reflect.Type, nullable bool) (*List, error) {
-	item, err := p.parse(source.Elem())
+	item, err := p.ParseWithOpts(source.Elem())
 	if err != nil {
 		return &List{}, err
 	}
@@ -564,7 +564,7 @@ func (p *Parser) parseFunc(source reflect.Type, nullable bool) (*Function, error
 	returns := make([]Item, 0)
 
 	for i := 0; i < source.NumIn(); i++ {
-		param, err := p.parse(source.In(i))
+		param, err := p.ParseWithOpts(source.In(i))
 		if err != nil {
 			return &Function{}, err
 		}
@@ -573,7 +573,7 @@ func (p *Parser) parseFunc(source reflect.Type, nullable bool) (*Function, error
 	}
 
 	for i := 0; i < source.NumOut(); i++ {
-		ret, err := p.parse(source.Out(i))
+		ret, err := p.ParseWithOpts(source.Out(i))
 		if err != nil {
 			return &Function{}, err
 		}

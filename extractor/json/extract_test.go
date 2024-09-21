@@ -1,9 +1,10 @@
-package jsonmeta
+package jsonmeta_test
 
 import (
 	"reflect"
 	"testing"
 
+	jsonmeta "go.trulyao.dev/mirror/v2/extractor/json"
 	"go.trulyao.dev/mirror/v2/extractor/meta"
 )
 
@@ -145,7 +146,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, err := Extract(test.Source, nil)
+		got, err := jsonmeta.Extract(test.Source, nil)
 		if err != nil && !test.WantErr {
 			t.Errorf("[%s] wanted NO error, got error: %v", test.Name, err)
 		}
