@@ -166,6 +166,12 @@ func (c *Config) SetPrefix(value string) *Config {
 	return c
 }
 
+// SetPreferArrayGeneric sets whether or not to prefer `Array<T>` over `T[]`
+func (c *Config) SetPreferArrayGeneric(value bool) *Config {
+	c.PreferArrayGeneric = value
+	return c
+}
+
 // AddCustomType adds a custom type to the config
 func (c *Config) AddCustomType(name, value string) {
 	c.customTypes[name] = value
