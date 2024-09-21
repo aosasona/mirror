@@ -27,14 +27,26 @@ type (
 		FlattenEmbeddedTypes bool
 	}
 
+	CustomType struct {
+		Name string
+		Item Item
+	}
+
 	OnParseItemFunc func(sourceName string, target Item) error
 
 	OnParseFieldFunc func(parentType *reflect.Type, originalField *reflect.StructField, field *Field) error
 
 	Parser struct {
+		// Sources to parse
 		sources []reflect.Type
-		cache   map[string]CacheValue
 
+		// Cache of parsed items
+		cache map[string]CacheValue
+
+		// Map of custom types with items to be overridden with when encountered
+		customTypes map[string]Item
+
+		// Configuration
 		enableCaching        bool
 		flattenEmbeddedTypes bool
 
@@ -48,6 +60,7 @@ type (
 func New() *Parser {
 	return &Parser{
 		cache:                make(map[string]CacheValue),
+		customTypes:          make(map[string]Item),
 		sources:              []reflect.Type{},
 		enableCaching:        true,
 		flattenEmbeddedTypes: false,
@@ -104,6 +117,32 @@ func (p *Parser) SetFlattenEmbeddedTypes(flatten bool) *Parser {
 func (p *Parser) SetEnableCaching(enable bool) *Parser {
 	p.enableCaching = enable
 	return p
+}
+
+// Add a custom type to the parser
+// Takes the name of the type and the item to override it with when encountered
+func (p *Parser) AddCustomType(name string, item Item) error {
+	if name == "" {
+		return fmt.Errorf("name cannot be empty")
+	}
+
+	if item == nil {
+		return fmt.Errorf("item cannot be nil")
+	}
+
+	p.customTypes[name] = item
+	return nil
+}
+
+// Add multiple custom types to the parser
+func (p *Parser) AddCustomTypes(customTypes []CustomType) error {
+	for _, customType := range customTypes {
+		if err := p.AddCustomType(customType.Name, customType.Item); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Add a source to the parser
@@ -242,6 +281,15 @@ func (p *Parser) parse(source reflect.Type, opts ...Options) (Item, error) {
 		if value, ok := p.cache[cacheKey]; ok && reflect.DeepEqual(value.Options, opts) {
 			return *value.Item, nil
 		}
+	}
+
+	// If the source is a custom type, return the custom type and cache that too
+	if customType, ok := p.customTypes[source.Name()]; ok {
+		if p.enableCaching {
+			p.cache[cacheKey] = CacheValue{Options: Options{}, Item: &customType}
+		}
+
+		return customType, nil
 	}
 
 	opt := Options{}

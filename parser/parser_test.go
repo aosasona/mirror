@@ -732,6 +732,7 @@ func Test_ParseBuiltInTypes(t *testing.T) {
 		TimeSlice []time.Time
 		TimeArray [3]time.Time
 	)
+
 	tests := []Test{
 		{
 			Description: "parse time.Time",
@@ -1024,15 +1025,75 @@ func Test_StrucMethods(t *testing.T) {
 	}
 }
 
-func runTests(t *testing.T, tests []Test) {
+func Test_ParseCustomItem(t *testing.T) {
+	type (
+		__internal_scalar_type string
+		__internal_struct_type struct {
+			Name string
+		}
+
+		__internal_unregistered_type string
+	)
+
+	var (
+		internalScalarItem = &Scalar{"overriden_scalar_type", TypeVoid, false}
+
+		internalStructItem = &Struct{
+			ItemName: "overriden_struct_type",
+			Fields: []Field{
+				{
+					ItemName: "name",
+					BaseItem: &Scalar{"string", TypeString, false},
+					Meta:     meta.Meta{},
+				},
+			},
+		}
+	)
+
+	tests := []Test{
+		{
+			Description: "parse custom scalar item",
+			Source:      __internal_scalar_type(""),
+			Expected:    internalScalarItem,
+		},
+
+		{
+			Description: "parse custom struct item",
+			Source:      __internal_struct_type{},
+			Expected:    internalStructItem,
+		},
+
+		{
+			Description: "parse unregistered custom type",
+			Source:      __internal_unregistered_type(""),
+			Expected:    &Scalar{"__internal_unregistered_type", TypeString, false},
+		},
+	}
+
+	p := New()
+	p.AddCustomTypes([]CustomType{
+		{"__internal_scalar_type", internalScalarItem},
+		{"__internal_struct_type", internalStructItem},
+	})
+
+	runTests(t, tests, p)
+}
+
+func runTests(t *testing.T, tests []Test, parser ...*Parser) {
 	for _, tt := range tests {
-		runTest(t, tt)
+		runTest(t, tt, parser...)
 	}
 }
 
-func runTest(t *testing.T, tt Test) {
-	p := New()
-	p.SetFlattenEmbeddedTypes(true) // TODO: make this better
+func runTest(t *testing.T, tt Test, parser ...*Parser) {
+	var p *Parser
+
+	if len(parser) > 0 {
+		p = parser[0]
+	} else {
+		p = New()
+		p.SetFlattenEmbeddedTypes(true) // TODO: make this better
+	}
 
 	got, err := p.parse(reflect.TypeOf(tt.Source))
 	if err != nil && !tt.WantErr {
