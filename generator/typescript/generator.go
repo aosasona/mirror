@@ -112,19 +112,20 @@ func (g *Generator) generateBaseType(item parser.Item, nestingLevel ...int) (str
 		err      error
 	)
 
+	level := 1
+	if len(nestingLevel) > 0 {
+		level = nestingLevel[0]
+	}
+
 	switch item := item.(type) {
 	case *parser.Scalar:
 		baseType, err = g.generateScalar(item)
 	case *parser.List:
-		baseType, err = g.generateList(item)
+		baseType, err = g.generateList(item, level)
 	case *parser.Struct:
-		level := 1
-		if len(nestingLevel) > 0 {
-			level = nestingLevel[0]
-		}
 		baseType, err = g.generateStruct(item, level)
 	case *parser.Map:
-		baseType, err = g.generateMap(item)
+		baseType, err = g.generateMap(item, level)
 	case *parser.Function:
 		baseType, err = g.generateFunction(item)
 	default:
@@ -315,7 +316,7 @@ func (g *Generator) generateStruct(item *parser.Struct, nestingLevel int) (strin
 }
 
 // generateList generates the typescript representation of a list type (array or slice in Go)
-func (g *Generator) generateList(item *parser.List) (string, error) {
+func (g *Generator) generateList(item *parser.List, nestingLevel int) (string, error) {
 	var (
 		listString = ""
 		err        error
@@ -359,7 +360,7 @@ func (g *Generator) generateList(item *parser.List) (string, error) {
 		// If inline objects are enabled, generate the base type for the item
 		baseType = item.BaseItem.Name()
 		if g.config.InlineObjects {
-			if baseType, err = g.generateBaseType(item.BaseItem); err != nil {
+			if baseType, err = g.generateBaseType(item.BaseItem, nestingLevel); err != nil {
 				return "", err
 			}
 		}
@@ -369,7 +370,7 @@ func (g *Generator) generateList(item *parser.List) (string, error) {
 }
 
 // generateMap generates the typescript representation of a map
-func (g *Generator) generateMap(item *parser.Map) (string, error) {
+func (g *Generator) generateMap(item *parser.Map, nestingLevel int) (string, error) {
 	typeString := "Record<%s, %s>"
 
 	if item.Key == nil || item.Value == nil {
@@ -394,7 +395,7 @@ func (g *Generator) generateMap(item *parser.Map) (string, error) {
 		return "", err
 	}
 
-	if valueType, err = g.generateBaseType(item.Value); err != nil {
+	if valueType, err = g.generateBaseType(item.Value, nestingLevel); err != nil {
 		return "", err
 	}
 
