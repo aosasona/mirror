@@ -32,6 +32,28 @@ export type Person = {
 	is_active: boolean;
 };
 
+export type Store = {
+	key: string;
+	value: string;
+	meta: StateMeta;
+};
+
+export type StateMeta = {
+	expires_at: string;
+	created_at: string;
+};
+
+export type UserWithNestedProperties = {
+	first_name: string;
+	last_name: string;
+	stores: Array<Store>;
+	other_store: Record<string, {
+		key: string;
+		value: string;
+		meta: StateMeta;
+	}>;
+};
+
 export type Collection = {
 	items: Array<string>;
 	description?: string;

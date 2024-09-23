@@ -40,6 +40,41 @@ export type Inline_Person = {
 	is_active: boolean;
 };
 
+export type Inline_Store = {
+	key: string;
+	value: string;
+	meta: {
+		expires_at: string;
+		created_at: string;
+	};
+};
+
+export type Inline_StateMeta = {
+	expires_at: string;
+	created_at: string;
+};
+
+export type Inline_UserWithNestedProperties = {
+	first_name: string;
+	last_name: string;
+	stores: Array<{
+		key: string;
+		value: string;
+		meta: {
+			expires_at: string;
+			created_at: string;
+		};
+	}>;
+	other_store: Record<string, {
+		key: string;
+		value: string;
+		meta: {
+			expires_at: string;
+			created_at: string;
+		};
+	}>;
+};
+
 export type Inline_Collection = {
 	items: Array<string>;
 	description?: string;
