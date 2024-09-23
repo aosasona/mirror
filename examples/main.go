@@ -40,6 +40,26 @@ type Person struct {
 	IsActive  bool           `mirror:"name:is_active"`
 }
 
+type StateMeta struct {
+	ExpiresAt time.Time `mirror:"name:expires_at"`
+	CreatedAt time.Time `mirror:"name:created_at"`
+}
+
+type Store struct {
+	Key   string    `mirror:"name:key"`
+	Value string    `mirror:"name:value"`
+	Meta  StateMeta `mirror:"name:meta"`
+}
+
+type UserWithNestedProperties struct {
+	FirstName string `mirror:"name:first_name"`
+	LastName  string `mirror:"name:last_name"`
+
+	// These are to test nesting and indentation
+	Stores     []Store          `mirror:"name:stores"`
+	OtherStore map[string]Store `mirror:"name:other_store"`
+}
+
 type Collection struct {
 	Items []string `mirror:"name:items"`
 	Desc  string   `mirror:"name:desc"`
@@ -87,7 +107,17 @@ func main() {
 		return nil
 	})
 
-	m.AddSources(Language(""), Address{}, Tags{}, Person{}, Collection{}, CreateUserFunc(nil))
+	m.AddSources(
+		Language(""),
+		Address{},
+		Tags{},
+		Person{},
+		Store{},
+		StateMeta{},
+		UserWithNestedProperties{},
+		Collection{},
+		CreateUserFunc(nil),
+	)
 
 	defaultTS := typescript.DefaultConfig().
 		SetFileName("default.ts").
@@ -112,8 +142,7 @@ func main() {
 	newParser := parser.New()
 	flattenedTS := typescript.DefaultConfig().
 		SetFileName("flattened"). // no extension
-		SetOutputPath("./examples").
-		SetPrefix("Flattened_")
+		SetOutputPath("./examples")
 
 	m.ResetTargets().
 		SetParser(newParser).

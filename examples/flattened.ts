@@ -4,11 +4,11 @@
  * You can find the docs and source code for mirror here: https://github.com/aosasona/mirror
  */
 
-export type Flattened_Language = string;
+export type Language = string;
 
-export type Flattened_Tags = Record<string, string>;
+export type Tags = Record<string, string>;
 
-export type Flattened_Person = {
+export type Person = {
     first_name: string;
     last_name: string;
     age: number;
@@ -28,9 +28,9 @@ export type Flattened_Person = {
     is_active: boolean;
 };
 
-export type Flattened_Collection = {
+export type Collection = {
     items: Array<string>;
     desc: string;
 };
 
-export type Flattened_CreateUserFunc = (arg0: Person) => string;
+export type CreateUserFunc = (arg0: Person) => string;
