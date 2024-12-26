@@ -273,11 +273,13 @@ func (p *Parser) Parse(source reflect.Type) (Item, error) {
 //
 // ```
 func (p *Parser) ParseWithOpts(source reflect.Type, opts ...Options) (Item, error) {
-	cacheKey := base64.StdEncoding.EncodeToString(
-		[]byte(source.PkgPath() + ":" + source.Name()),
-	)
+	var cacheKey string
 
 	if p.enableCaching {
+		cacheKey = base64.StdEncoding.EncodeToString(
+			[]byte(source.PkgPath() + ":" + source.Name()),
+		)
+
 		if value, ok := p.cache[cacheKey]; ok && reflect.DeepEqual(value.Options, opts) {
 			return *value.Item, nil
 		}
