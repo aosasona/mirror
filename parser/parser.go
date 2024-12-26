@@ -365,7 +365,7 @@ func (p *Parser) ParseWithOpts(source reflect.Type, opts ...Options) (Item, erro
 		item, err = p.parseInterface(source, nullable)
 
 	default:
-		return nil, fmt.Errorf("not implemented for %s", source.Name())
+		return nil, notImplementedFor(source, "ParseWithOpts")
 	}
 
 	if err != nil {
@@ -452,7 +452,7 @@ func (p *Parser) parseExemptedStructs(source reflect.Type, nullable bool) (Item,
 		return &Scalar{source.Name(), TypeByte, true}, nil
 
 	default:
-		return nil, fmt.Errorf("not implemented for %s", source.Name())
+		return nil, notImplementedFor(source, "parseExemptedStructs")
 	}
 }
 
@@ -601,5 +601,23 @@ func (p *Parser) parseInterface(source reflect.Type, nullable bool) (Item, error
 		return &Scalar{source.Name(), TypeAny, nullable}, nil
 	}
 }
+
+// Construct an error for unsupported types
+func notImplementedFor(source reflect.Type, op string) error {
+	name := source.Name()
+
+	if source.PkgPath() != "" {
+		name = source.PkgPath() + "." + name
 	}
+
+	if name == "" {
+		name = source.String()
+	}
+
+	return fmt.Errorf(
+		"unsupported type `%s` with kind `%s` in `%s` operation",
+		name,
+		source.Kind(),
+		op,
+	)
 }
