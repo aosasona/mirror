@@ -26,10 +26,12 @@ export type Person = {
 	languages: Array<string>;
 	grades?: Record<string, number>;
 	tags: Record<string, string>;
+	props?: any;
 	created_at: string;
 	updated_at: number | null;
 	deleted_at: string | null;
 	is_active: boolean;
+	error: string;
 };
 
 export type Store = {
@@ -41,6 +43,7 @@ export type Store = {
 export type StateMeta = {
 	expires_at: string;
 	created_at: string;
+	meta: any;
 };
 
 export type UserWithNestedProperties = {
