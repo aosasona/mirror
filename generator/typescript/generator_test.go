@@ -62,6 +62,16 @@ func Test_GenerateScalar(t *testing.T) {
 			Expect: "export type NullableInt = number | undefined;",
 			Config: config,
 		},
+		{
+			Description: "generate any",
+			Src: &parser.Scalar{
+				ItemName: "FooAny",
+				ItemType: parser.TypeAny,
+				Nullable: false,
+			},
+			Expect: "export type FooAny = any;",
+			Config: config,
+		},
 	}
 
 	runTests(t, tests)
@@ -138,6 +148,24 @@ func Test_GenerateArray(t *testing.T) {
 				Nullable: true,
 			},
 			Expect: "export type IntArray = Array<Foo> | undefined;",
+			Config: typescript.Config{
+				PreferArrayGeneric: true,
+				InludeSemiColon:    true,
+			},
+		},
+
+		{
+			Description: "generate any array",
+			Src: &parser.List{
+				ItemName: "AnyArray",
+				BaseItem: &parser.Scalar{
+					ItemName: "",
+					ItemType: parser.TypeAny,
+					Nullable: false,
+				},
+				Nullable: true,
+			},
+			Expect: "export type AnyArray = Array<any> | undefined;",
 			Config: typescript.Config{
 				PreferArrayGeneric: true,
 				InludeSemiColon:    true,
@@ -286,6 +314,31 @@ func Test_GenerateStruct(t *testing.T) {
 				IndentationCount:   4,
 				InlineObjects:      false,
 				PreferArrayGeneric: true,
+			},
+		},
+
+		{
+			Description: "generate struct with any",
+			Src: &parser.Struct{
+				ItemName: "Foo",
+				Fields: []parser.Field{
+					{
+						ItemName: "Bar",
+						BaseItem: &parser.Scalar{
+							ItemName: "",
+							ItemType: parser.TypeAny,
+							Nullable: false,
+						},
+					},
+				},
+				Nullable: false,
+			},
+			Expect: "export type Foo = {\n    Bar: any;\n};",
+			Config: typescript.Config{
+				InludeSemiColon:  true,
+				IndentationType:  config.IndentSpace,
+				IndentationCount: 4,
+				InlineObjects:    true,
 			},
 		},
 	}
