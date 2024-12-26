@@ -595,11 +595,11 @@ func (p *Parser) parseFunc(source reflect.Type, nullable bool) (*Function, error
 // This accounts for various types like `interface{}`, `error`, `time.Time`, `sql.NullX` types
 func (p *Parser) parseInterface(source reflect.Type, nullable bool) (Item, error) {
 	switch source.Name() {
-	case "interface{}", "any":
-		return &Scalar{source.Name(), TypeAny, nullable}, nil
 	case "error":
 		return &Scalar{source.Name(), TypeString, nullable}, nil
 	default:
-		return nil, fmt.Errorf("not implemented for %s", source.Name())
+		return &Scalar{source.Name(), TypeAny, nullable}, nil
+	}
+}
 	}
 }
