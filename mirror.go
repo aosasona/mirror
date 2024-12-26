@@ -98,7 +98,7 @@ func (m *Mirror) AddTarget(t types.TargetInterface) *Mirror {
 func (m *Mirror) SetParser(p types.ParserInterface) *Mirror {
 	p.SetConfig(parser.Config{
 		FlattenEmbeddedTypes: m.config.FlattenEmbeddedTypes,
-		EnableCaching:          m.config.EnableParserCache,
+		EnableCaching:        m.config.EnableParserCache,
 	})
 
 	m.parser = p
