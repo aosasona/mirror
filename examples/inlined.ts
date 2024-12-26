@@ -34,10 +34,12 @@ export type Inline_Person = {
 	languages: Array<string>;
 	grades?: Record<string, number>;
 	tags: Record<string, string>;
+	props?: any;
 	created_at: string;
 	updated_at: number | null;
 	deleted_at: string | null;
 	is_active: boolean;
+	error: string;
 };
 
 export type Inline_Store = {
@@ -46,12 +48,14 @@ export type Inline_Store = {
 	meta: {
 		expires_at: string;
 		created_at: string;
+		meta: any;
 	};
 };
 
 export type Inline_StateMeta = {
 	expires_at: string;
 	created_at: string;
+	meta: any;
 };
 
 export type Inline_UserWithNestedProperties = {
@@ -63,6 +67,7 @@ export type Inline_UserWithNestedProperties = {
 		meta: {
 			expires_at: string;
 			created_at: string;
+			meta: any;
 		};
 	}>;
 	other_store: Record<string, {
@@ -71,6 +76,7 @@ export type Inline_UserWithNestedProperties = {
 		meta: {
 			expires_at: string;
 			created_at: string;
+			meta: any;
 		};
 	}>;
 };
@@ -97,8 +103,10 @@ export type Inline_CreateUserFunc = (arg0: {
 	languages: Array<string>;
 	grades?: Record<string, number>;
 	tags: Record<string, string>;
+	props?: any;
 	created_at: string;
 	updated_at: number | null;
 	deleted_at: string | null;
 	is_active: boolean;
+	error: string;
 }) => string;
