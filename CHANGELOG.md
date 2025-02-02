@@ -69,3 +69,8 @@
 - Fixed `interface`/`any` detection in the parser
   > This was causing an `unimplemented` error to be returned whenever any was used in a struct or any other anonymous context
 - Updated examples and tests to include `any`
+
+# 2.7.3
+
+- Fixed the naive parsing of mirror tags
+  > `mirror:"type:{ 'foo': bar}"` will now be parsed correctly instead of skipping due to the presence of another `:` that we were naively splitting on
