@@ -16,6 +16,7 @@ type TestStruct struct {
 	BMI         string   `                     mirror:"-"`
 	NextOfKin   string   `                     mirror:"name:next_of_kin,skip:true"`
 	Connections []string `                     mirror:"name:connected_ids, type:Array<string>, optional:true"`
+	Meta        any      `                     mirror:"name:meta, type:{'foo': string},"`
 }
 
 var testStruct = reflect.TypeOf(TestStruct{})
@@ -30,6 +31,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 	bmiField, _ := testStruct.FieldByName("BMI")
 	nextOfKinField, _ := testStruct.FieldByName("NextOfKin")
 	connectionsField, _ := testStruct.FieldByName("Connections")
+	metaField, _ := testStruct.FieldByName("Meta")
 
 	if !ok {
 		panic("field not found")
@@ -110,6 +112,17 @@ func TestJSONTagParser_Parse(t *testing.T) {
 				Skip:         false,
 				Optional:     true,
 				Type:         "Array<string>",
+			},
+		},
+		{
+			Name:   "parse object type override",
+			Source: metaField,
+			Expected: &meta.Meta{
+				OriginalName: "Meta",
+				Name:         "meta",
+				Skip:         false,
+				Optional:     false,
+				Type:         "{'foo': string}",
 			},
 		},
 	}

@@ -45,7 +45,7 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 
 	// split the props into key-value pairs
 	for _, f := range tagFields {
-		kv := strings.Split(f, ":")
+		kv := strings.SplitN(f, ":", 2)
 		if len(kv) != 2 {
 			continue
 		}
