@@ -38,6 +38,9 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 		return fieldMeta, nil
 	}
 
+	// TODO: manually parse the tag since we don't want to accidentally split on something like a comma in a string
+	// NOTE: could use a regex to parse the tag or write a custom parser
+	// NOTE: long-term, the parser is the best option to maintain and properly test
 	tagFields := strings.Split(mirrorTag, ",")
 	if len(tagFields) == 0 {
 		return fieldMeta, nil
