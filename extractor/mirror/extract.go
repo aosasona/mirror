@@ -20,10 +20,6 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 	fieldMeta.OriginalName = helper.WithDefaultString(fieldMeta.OriginalName, field.Name)
 	fieldMeta.Name = helper.WithDefaultString(fieldMeta.Name, field.Name)
 
-	if fieldMeta.Name == "" {
-		fieldMeta.Name = fieldMeta.OriginalName
-	}
-
 	mirrorTag := strings.TrimSpace(field.Tag.Get("mirror"))
 
 	if mirrorTag == "" {
@@ -46,16 +42,12 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 	// If the skip flag is set, then we don't need to parse the rest of the tag
 	if parsedMeta.Skip != nil {
 		fieldMeta.Skip = *parsedMeta.Skip
-		if fieldMeta.Skip {
-			return fieldMeta, nil
-		}
 	}
 
 	// Update the field meta with the parsed meta
-	fieldMeta.Name = helper.WithDefaultString(
-		strings.TrimSpace(deref(parsedMeta.Name)),
-		field.Name,
-	)
+	if parsedMeta.Name != nil {
+		fieldMeta.Name = *parsedMeta.Name
+	}
 
 	if parsedMeta.Optional != nil {
 		fieldMeta.Optional = *parsedMeta.Optional

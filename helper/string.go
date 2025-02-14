@@ -3,7 +3,7 @@ package helper
 import "strings"
 
 func WithDefaultString(value string, defaultValue string) string {
-	if value == "" {
+	if strings.TrimSpace(value) == "" {
 		return defaultValue
 	}
 

@@ -97,6 +97,15 @@ func Test_Parse(t *testing.T) {
 			ParsedMeta{Skip: ref(true)},
 			false,
 		},
+		{
+			"type:Date,skip:true,optional:true",
+			ParsedMeta{
+				Type:     ref("Date"),
+				Skip:     ref(true),
+				Optional: ref(true),
+			},
+			false,
+		},
 	}
 
 	for _, tc := range tests {

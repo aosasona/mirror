@@ -2,6 +2,8 @@ package parser_test
 
 import (
 	"database/sql"
+	"encoding/json"
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -9,6 +11,8 @@ import (
 	"go.trulyao.dev/mirror/v2/extractor/meta"
 	"go.trulyao.dev/mirror/v2/parser"
 )
+
+// TODO: add tests for a mix of JSON and MIRROR tags
 
 type Test struct {
 	Description string
@@ -209,6 +213,12 @@ func Test_ParseItem_Struct(t *testing.T) {
 		CreatedAt int   `mirror:"name:created_at"`
 	}
 
+	type Meta struct {
+		ID        int32     `json:"-"          mirror:"type:string"`
+		Scope     string    `json:"scope"      mirror:"type:'reset' | 'change'"`
+		CreatedAt time.Time `json:"created_at" mirror:"type:Date,skip:true,optional:true"`
+	}
+
 	tests := []Test{
 		{
 			Description: "parse Person struct",
@@ -337,6 +347,49 @@ func Test_ParseItem_Struct(t *testing.T) {
 					},
 				},
 				Nullable: false,
+			},
+		},
+
+		{
+			Description: "parse Meta struct with mixed JSON and mirror meta",
+			Source:      Meta{},
+			Expected: &parser.Struct{
+				ItemName: "Meta",
+				Fields: []parser.Field{
+					{
+						ItemName: "ID",
+						BaseItem: &parser.Scalar{"int32", parser.TypeInteger, false},
+						Meta: meta.Meta{
+							OriginalName: "ID",
+							Name:         "ID",
+							Type:         "string",
+							Optional:     false,
+							Skip:         true,
+						},
+					},
+					{
+						ItemName: "scope",
+						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
+						Meta: meta.Meta{
+							OriginalName: "Scope",
+							Name:         "scope",
+							Type:         "'reset' | 'change'",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+					{
+						ItemName: "created_at",
+						BaseItem: &parser.Scalar{"Time", parser.TypeTimestamp, false},
+						Meta: meta.Meta{
+							OriginalName: "CreatedAt",
+							Name:         "created_at",
+							Type:         "Date",
+							Optional:     true,
+							Skip:         true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -1106,6 +1159,19 @@ func runTest(t *testing.T, tt Test, optParse ...*parser.Parser) {
 	}
 
 	if !reflect.DeepEqual(got, tt.Expected) {
+		if os.Getenv("JSON_DEBUG") == "true" {
+			var (
+				gotJson      []byte
+				expectedJson []byte
+			)
+
+			gotJson, _ = json.MarshalIndent(got, "", "  ")
+			expectedJson, _ = json.MarshalIndent(tt.Expected, "", "  ")
+
+			t.Logf("got:\n%s", gotJson)
+			t.Logf("expected:\n%s", expectedJson)
+		}
+
 		t.Errorf("[%s] wanted %#v, got %#v", tt.Description, tt.Expected, got)
 	}
 }
