@@ -42,9 +42,6 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 	// If the skip flag is set, then we don't need to parse the rest of the tag
 	if parsedMeta.Skip != nil {
 		fieldMeta.Skip = *parsedMeta.Skip
-		if fieldMeta.Skip {
-			return fieldMeta, nil
-		}
 	}
 
 	// Update the field meta with the parsed meta
