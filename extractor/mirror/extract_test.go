@@ -3,27 +3,27 @@ package mirrormeta_test
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"go.trulyao.dev/mirror/v2/extractor/meta"
 	mirrormeta "go.trulyao.dev/mirror/v2/extractor/mirror"
 )
 
 type TestStruct struct {
-	Name        string   `ts:"name:first_name"`
-	LastName    string   `                     mirror:"name:last_name"`
-	Invalid     string   `                     mirror:"name:,random_opt"`
-	Phone       string   `                     mirror:"name:phone_number,optional:true"`
-	BMI         string   `                     mirror:"-"`
-	NextOfKin   string   `                     mirror:"name:next_of_kin,skip:true"`
-	Connections []string `                     mirror:"name:connected_ids, type:Array<string>, optional:true"`
-	Meta        any      `                     mirror:"name:meta, type:{'foo': string},"`
+	Name        string
+	LastName    string    `mirror:"name:last_name"`
+	Invalid     string    `mirror:"name:,random_opt"`
+	Phone       string    `mirror:"name:phone_number,optional:true"`
+	BMI         string    `mirror:"-"`
+	NextOfKin   string    `mirror:"name:next_of_kin,skip:true"`
+	Connections []string  `mirror:"name:connected_ids, type:Array<string>, optional:true"`
+	Meta        any       `mirror:"name:meta, type:{'foo': string},"`
+	CreatedAt   time.Time `mirror:"type:Date,skip:true,optional:true"`
 }
 
 var testStruct = reflect.TypeOf(TestStruct{})
 
 func TestJSONTagParser_Parse(t *testing.T) {
-	ok := true
-
 	nameField, _ := testStruct.FieldByName("Name")
 	lastNameField, _ := testStruct.FieldByName("LastName")
 	invalidField, _ := testStruct.FieldByName("Invalid")
@@ -32,10 +32,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 	nextOfKinField, _ := testStruct.FieldByName("NextOfKin")
 	connectionsField, _ := testStruct.FieldByName("Connections")
 	metaField, _ := testStruct.FieldByName("Meta")
-
-	if !ok {
-		panic("field not found")
-	}
+	createAtField, _ := testStruct.FieldByName("CreatedAt")
 
 	tests := []struct {
 		Name     string
@@ -44,7 +41,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 		WantErr  bool
 	}{
 		{
-			Name:   "properly parse tag using v1.0 ts tag",
+			Name:   "parse with missing mirror tag",
 			Source: nameField,
 			Expected: &meta.Meta{
 				OriginalName: "Name",
@@ -98,7 +95,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 			Source: nextOfKinField,
 			Expected: &meta.Meta{
 				OriginalName: "NextOfKin",
-				Name:         "NextOfKin",
+				Name:         "next_of_kin",
 				Skip:         true,
 				Optional:     false,
 			},
@@ -123,6 +120,17 @@ func TestJSONTagParser_Parse(t *testing.T) {
 				Skip:         false,
 				Optional:     false,
 				Type:         "{'foo': string}",
+			},
+		},
+		{
+			Name:   "parse type and skip",
+			Source: createAtField,
+			Expected: &meta.Meta{
+				OriginalName: "CreatedAt",
+				Name:         "CreatedAt",
+				Skip:         true,
+				Optional:     true,
+				Type:         "Date",
 			},
 		},
 	}
