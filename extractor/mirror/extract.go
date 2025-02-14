@@ -9,10 +9,7 @@ import (
 )
 
 func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
-	var (
-		fieldMeta *meta.Meta
-		opts      = make(map[string]string)
-	)
+	var fieldMeta *meta.Meta
 
 	if root == nil {
 		fieldMeta = new(meta.Meta)
@@ -38,45 +35,34 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 		return fieldMeta, nil
 	}
 
-	// TODO: manually parse the tag since we don't want to accidentally split on something like a comma in a string
-	// NOTE: could use a regex to parse the tag or write a custom parser
-	// NOTE: long-term, the parser is the best option to maintain and properly test
-	tagFields := strings.Split(mirrorTag, ",")
-	if len(tagFields) == 0 {
-		return fieldMeta, nil
+	// Parse the mirror tag
+	// NOTE: This required because of the very nature of how types are, they can contain almost anything and will be near impossible to simply split on or extract with regex. The parser also gives us more control in the long-term.
+	p := NewMetaParser(mirrorTag)
+	parsedMeta, err := p.Parse()
+	if err != nil {
+		return nil, err
 	}
 
-	// split the props into key-value pairs
-	for _, f := range tagFields {
-		kv := strings.SplitN(f, ":", 2)
-		if len(kv) != 2 {
-			continue
-		}
-		opts[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
-	}
-
-	if skip, ok := opts["skip"]; ok {
-		if helper.StringToBool(skip) {
-			fieldMeta.Skip = true
-
-			// if the tag is set to skip, then we don't need to parse the rest of the tag
+	// If the skip flag is set, then we don't need to parse the rest of the tag
+	if parsedMeta.Skip != nil {
+		fieldMeta.Skip = *parsedMeta.Skip
+		if fieldMeta.Skip {
 			return fieldMeta, nil
 		}
 	}
 
-	if name, ok := opts["name"]; ok {
-		fieldMeta.Name = helper.WithDefaultString(strings.TrimSpace(name), field.Name)
+	// Update the field meta with the parsed meta
+	fieldMeta.Name = helper.WithDefaultString(
+		strings.TrimSpace(deref(parsedMeta.Name)),
+		field.Name,
+	)
+
+	if parsedMeta.Optional != nil {
+		fieldMeta.Optional = *parsedMeta.Optional
 	}
 
-	if optional, ok := opts["optional"]; ok {
-		// check if the optional tag is set to true or 1 (for backwards compatibility)
-		if helper.StringToBool(optional) {
-			fieldMeta.Optional = true
-		}
-	}
-
-	if overrideType, ok := opts["type"]; ok {
-		fieldMeta.Type = strings.TrimSpace(overrideType)
+	if parsedMeta.Type != nil {
+		fieldMeta.Type = *parsedMeta.Type
 	}
 
 	return fieldMeta, nil
