@@ -49,6 +49,7 @@ type StateMeta struct {
 	ExpiresAt time.Time `mirror:"name:expires_at"`
 	CreatedAt time.Time `mirror:"name:created_at"`
 	Meta      NamedAny  `mirror:"name:meta"`
+	User      NamedAny  `mirror:"name:user,type:{ user_id: string, role: 'admin' | 'user', tags: Array<string> }"`
 }
 
 type Store struct {
