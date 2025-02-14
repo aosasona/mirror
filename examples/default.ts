@@ -44,6 +44,7 @@ export type StateMeta = {
 	expires_at: string;
 	created_at: string;
 	meta: any;
+	user: { user_id: string, role: 'admin' | 'user', tags: Array<string> };
 };
 
 export type UserWithNestedProperties = {

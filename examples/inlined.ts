@@ -49,6 +49,7 @@ export type Inline_Store = {
 		expires_at: string;
 		created_at: string;
 		meta: any;
+		user: { user_id: string, role: 'admin' | 'user', tags: Array<string> };
 	};
 };
 
@@ -56,6 +57,7 @@ export type Inline_StateMeta = {
 	expires_at: string;
 	created_at: string;
 	meta: any;
+	user: { user_id: string, role: 'admin' | 'user', tags: Array<string> };
 };
 
 export type Inline_UserWithNestedProperties = {
@@ -68,6 +70,7 @@ export type Inline_UserWithNestedProperties = {
 			expires_at: string;
 			created_at: string;
 			meta: any;
+			user: { user_id: string, role: 'admin' | 'user', tags: Array<string> };
 		};
 	}>;
 	other_store: Record<string, {
@@ -77,6 +80,7 @@ export type Inline_UserWithNestedProperties = {
 			expires_at: string;
 			created_at: string;
 			meta: any;
+			user: { user_id: string, role: 'admin' | 'user', tags: Array<string> };
 		};
 	}>;
 };
