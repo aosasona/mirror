@@ -21,10 +21,6 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 	fieldMeta.OriginalName = helper.WithDefaultString(fieldMeta.OriginalName, field.Name)
 	fieldMeta.Name = helper.WithDefaultString(fieldMeta.Name, field.Name)
 
-	if fieldMeta.Name == "" {
-		fieldMeta.Name = fieldMeta.OriginalName
-	}
-
 	jsonTag := strings.TrimSpace(field.Tag.Get("json"))
 
 	// If the JSON tag is empty, return the fieldMeta as is so that we can proceed to the next tag if any

@@ -20,10 +20,6 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 	fieldMeta.OriginalName = helper.WithDefaultString(fieldMeta.OriginalName, field.Name)
 	fieldMeta.Name = helper.WithDefaultString(fieldMeta.Name, field.Name)
 
-	if fieldMeta.Name == "" {
-		fieldMeta.Name = fieldMeta.OriginalName
-	}
-
 	mirrorTag := strings.TrimSpace(field.Tag.Get("mirror"))
 
 	if mirrorTag == "" {
