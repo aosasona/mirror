@@ -20,13 +20,13 @@ type (
 )
 
 type Address struct {
-	Line1      *string `mirror:"name:line_1"`
-	Line2      *string `mirror:"name:line_2"`
-	Street     string  `mirror:"name:street"`
-	City       string  `mirror:"name:city"`
-	State      string  `mirror:"name:state"`
-	PostalCode string  `mirror:"name:postal_code"`
-	Country    string  `mirror:"name:country"`
+	Line1      *string `json:"line_1"      mirror:"type:string"`
+	Line2      *string `json:"line_2"`
+	Street     string  `                   mirror:"name:street"`
+	City       string  `json:"city"`
+	State      string  `json:"state"`
+	PostalCode string  `json:"postal_code"`
+	Country    string  `json:"country"`
 }
 
 type Person struct {
@@ -49,7 +49,7 @@ type StateMeta struct {
 	ExpiresAt time.Time `mirror:"name:expires_at"`
 	CreatedAt time.Time `mirror:"name:created_at"`
 	Meta      NamedAny  `mirror:"name:meta"`
-	User      NamedAny  `mirror:"name:user,type:{ user_id: string, role: 'admin' | 'user', tags: Array<string> }"`
+	User      NamedAny  `mirror:"type:{ user_id: string, role: 'admin' | 'user', tags: Array<string> }" json:"user"`
 }
 
 type Store struct {

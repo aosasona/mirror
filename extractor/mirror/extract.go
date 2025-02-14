@@ -52,10 +52,9 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 	}
 
 	// Update the field meta with the parsed meta
-	fieldMeta.Name = helper.WithDefaultString(
-		strings.TrimSpace(deref(parsedMeta.Name)),
-		field.Name,
-	)
+	if parsedMeta.Name != nil {
+		fieldMeta.Name = *parsedMeta.Name
+	}
 
 	if parsedMeta.Optional != nil {
 		fieldMeta.Optional = *parsedMeta.Optional
