@@ -65,7 +65,7 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 	// Validate the second directive
 	switch secondDirective {
 	case "omitempty":
-		fieldMeta.Optional = true
+		fieldMeta.Optional = meta.OptionalTrue
 	case "string":
 		fieldMeta.Type = "string"
 	case "":

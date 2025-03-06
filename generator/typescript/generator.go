@@ -265,7 +265,7 @@ func (g *Generator) generateStruct(item *parser.Struct, nestingLevel int) (strin
 
 		fieldStr += fieldName
 
-		if field.Meta.Optional {
+		if field.Meta.Optional.True() {
 			fieldStr += "?"
 			hasOptionalChar = true
 		}
@@ -276,7 +276,8 @@ func (g *Generator) generateStruct(item *parser.Struct, nestingLevel int) (strin
 		if field.Meta.Type != "" {
 			fieldStr += field.Meta.Type
 
-			if field.Meta.Optional || field.BaseItem.IsNullable() {
+			// TODO: visit here for the nullability vs optional issue
+			if field.Meta.Optional.True() || field.BaseItem.IsNullable() {
 				if g.config.PreferNullForNullable {
 					fieldStr += " | null"
 				} else {

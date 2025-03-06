@@ -2,6 +2,8 @@ package mirrormeta
 
 import (
 	"testing"
+
+	"go.trulyao.dev/mirror/v2/extractor/meta"
 )
 
 func Test_Parse(t *testing.T) {
@@ -18,7 +20,7 @@ func Test_Parse(t *testing.T) {
 				Type:     ref("{ name?: string, email?: string }"),
 				Skip:     ref(false),
 				Name:     ref(""),
-				Optional: ref(false),
+				Optional: meta.OptionalNone,
 			},
 			false,
 		},
@@ -38,7 +40,7 @@ func Test_Parse(t *testing.T) {
 				Type:     ref("string"),
 				Skip:     ref(false),
 				Name:     ref("email"),
-				Optional: ref(true),
+				Optional: meta.OptionalTrue,
 			},
 			false,
 		},
@@ -48,7 +50,7 @@ func Test_Parse(t *testing.T) {
 				Type:     ref("string"),
 				Skip:     ref(false),
 				Name:     ref("email"),
-				Optional: ref(false),
+				Optional: meta.OptionalFalse,
 			},
 			false,
 		},
@@ -58,13 +60,15 @@ func Test_Parse(t *testing.T) {
 				Type:     ref(""),
 				Skip:     ref(false),
 				Name:     ref("email"),
-				Optional: ref(false),
+				Optional: meta.OptionalFalse,
 			},
 			false,
 		},
 		{
 			"nme:email, optional:0",
-			ParsedMeta{},
+			ParsedMeta{
+				Optional: meta.OptionalFalse,
+			},
 			false,
 		},
 		{
@@ -78,7 +82,7 @@ func Test_Parse(t *testing.T) {
 				Type:     ref("string"),
 				Skip:     ref(true),
 				Name:     ref("email"),
-				Optional: ref(false),
+				Optional: meta.OptionalFalse,
 			},
 			false,
 		},
@@ -89,7 +93,7 @@ func Test_Parse(t *testing.T) {
 		},
 		{
 			"optional:true",
-			ParsedMeta{Optional: ref(true)},
+			ParsedMeta{Optional: meta.OptionalTrue},
 			false,
 		},
 		{
@@ -102,7 +106,7 @@ func Test_Parse(t *testing.T) {
 			ParsedMeta{
 				Type:     ref("Date"),
 				Skip:     ref(true),
-				Optional: ref(true),
+				Optional: meta.OptionalTrue,
 			},
 			false,
 		},
@@ -129,8 +133,8 @@ func Test_Parse(t *testing.T) {
 				t.Errorf("Expected skip `%v` but got `%v`", deref(tc.expected.Skip), deref(meta.Skip))
 			}
 
-			if deref(meta.Optional) != deref(tc.expected.Optional) {
-				t.Errorf("Expected optional `%v` but got `%v`", deref(tc.expected.Optional), deref(meta.Optional))
+			if meta.Optional != tc.expected.Optional {
+				t.Errorf("Expected optional `%s` but got `%s`", tc.expected.Optional, meta.Optional)
 			}
 		}
 	}

@@ -220,7 +220,7 @@ func Test_GenerateStruct(t *testing.T) {
 							OriginalName: "Baz",
 							Name:         "Baz",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalFalse,
 						},
 					},
 				},

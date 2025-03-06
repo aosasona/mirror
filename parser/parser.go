@@ -422,6 +422,7 @@ func (p *Parser) parseExemptedStructs(source reflect.Type, nullable bool) (Item,
 	case source == reflect.TypeOf([]byte{}):
 		return &Scalar{source.Name(), TypeString, nullable}, nil
 
+	// TODO: resolve linting error
 	case source == reflect.TypeOf([]interface{}{}):
 		return &List{
 			ItemName: source.Name(),

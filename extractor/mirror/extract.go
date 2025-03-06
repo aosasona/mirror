@@ -49,8 +49,8 @@ func Extract(field reflect.StructField, root *meta.Meta) (*meta.Meta, error) {
 		fieldMeta.Name = *parsedMeta.Name
 	}
 
-	if parsedMeta.Optional != nil {
-		fieldMeta.Optional = *parsedMeta.Optional
+	if parsedMeta.Optional != meta.OptionalNone {
+		fieldMeta.Optional = parsedMeta.Optional
 	}
 
 	if parsedMeta.Type != nil {
