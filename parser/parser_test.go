@@ -204,8 +204,9 @@ func Test_ParseItem_Struct(t *testing.T) {
 	}
 
 	type User struct {
-		Username string `json:"uname"`
-		Password string `json:"pass"`
+		FullName *string `json:"name"  mirror:"name:full_name,optional:false"`
+		Username string  `json:"uname"`
+		Password string  `json:"pass"`
 	}
 
 	type Account struct {
@@ -260,6 +261,18 @@ func Test_ParseItem_Struct(t *testing.T) {
 			Expected: &parser.Struct{
 				ItemName: "User",
 				Fields: []parser.Field{
+					{
+						ItemName: "full_name",
+						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
+						Meta: meta.Meta{
+							OriginalName: "Name",
+							Name:         "full_name",
+							Type:         "",
+							Optional:     false,
+							Skip:         false,
+						},
+					},
+
 					{
 						ItemName: "uname",
 						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
