@@ -12,8 +12,6 @@ import (
 	"go.trulyao.dev/mirror/v2/parser"
 )
 
-// TODO: add tests for a mix of JSON and MIRROR tags
-
 type Test struct {
 	Description string
 	Source      any
@@ -1149,10 +1147,13 @@ func Test_ParseCustomItem(t *testing.T) {
 	}
 
 	p := parser.New()
-	p.AddCustomTypes([]parser.CustomType{
+	err := p.AddCustomTypes([]parser.CustomType{
 		{"__internal_scalar_type", internalScalarItem},
 		{"__internal_struct_type", internalStructItem},
 	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
 
 	runTests(t, tests, p)
 }
@@ -1170,7 +1171,7 @@ func runTest(t *testing.T, tt Test, optParse ...*parser.Parser) {
 		p = optParse[0]
 	} else {
 		p = parser.New()
-		p.SetFlattenEmbeddedTypes(true) // TODO: make this better
+		p.SetFlattenEmbeddedTypes(true)
 	}
 
 	got, err := p.Parse(reflect.TypeOf(tt.Source))

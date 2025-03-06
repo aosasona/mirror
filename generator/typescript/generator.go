@@ -201,10 +201,8 @@ func (g *Generator) getScalarRepresentation(mirrorType parser.Type) string {
 		typeValue = "boolean"
 	case parser.TypeByte:
 		typeValue = "string"
-	// typeValue = "Uint8Array" // TODO: it should most definitely be Uint8Array but I'm not sure if it's a good idea currently with serialization and whatnot
 	case parser.TypeTimestamp:
 		typeValue = "string"
-		// typeValue = "Date" // TODO: generate code to automatically handle this on the TS side if need be in the future like TypeByte
 
 	// No-oop types
 	case parser.TypeVoid:
@@ -319,7 +317,7 @@ func (g *Generator) generateStruct(item *parser.Struct, nestingLevel int) (strin
 // generateList generates the typescript representation of a list type (array or slice in Go)
 func (g *Generator) generateList(item *parser.List, nestingLevel int) (string, error) {
 	var (
-		listString = ""
+		listString string
 		err        error
 	)
 
