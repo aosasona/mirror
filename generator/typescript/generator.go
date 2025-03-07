@@ -151,8 +151,8 @@ func (g *Generator) generateBaseType(
 		optional = metadata.Optional
 	}
 
-	isOptional := item.IsNullable() && optional.None()
-	isOverrideOptional := optional.True()
+	isOptional := item.IsNullable() && optional.IsNone()
+	isOverrideOptional := optional.IsTrue()
 	if isOptional || isOverrideOptional {
 		if g.config.PreferNullForNullable {
 			baseType += " | null"
@@ -276,7 +276,7 @@ func (g *Generator) generateStruct(item *parser.Struct, nestingLevel int) (strin
 
 		fieldStr += fieldName
 
-		if field.Meta.Optional.True() {
+		if field.Meta.Optional.IsTrue() {
 			fieldStr += "?"
 			hasOptionalChar = true
 		}
@@ -286,8 +286,8 @@ func (g *Generator) generateStruct(item *parser.Struct, nestingLevel int) (strin
 		// if the field has an override type (using the `mirror` tag), use that
 		if field.Meta.Type != "" {
 			fieldStr += field.Meta.Type
-			isOptional := field.BaseItem.IsNullable() && field.Meta.Optional.None()
-			isOverrideOptional := field.Meta.Optional.True()
+			isOptional := field.BaseItem.IsNullable() && field.Meta.Optional.IsNone()
+			isOverrideOptional := field.Meta.Optional.IsTrue()
 
 			if isOptional || isOverrideOptional {
 				if g.config.PreferNullForNullable {

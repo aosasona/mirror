@@ -23,11 +23,9 @@ func (o Optional) String() string {
 	}
 }
 
-// TODO: rename to IsNone, IsTrue, IsFalse and remove IsOptional
-func (o Optional) IsOptional() bool { return o == OptionalTrue }
-func (o Optional) True() bool       { return o == OptionalTrue }
-func (o Optional) False() bool      { return o == OptionalFalse }
-func (o Optional) None() bool       { return o == OptionalNone }
+func (o Optional) IsTrue() bool  { return o == OptionalTrue }
+func (o Optional) IsFalse() bool { return o == OptionalFalse }
+func (o Optional) IsNone() bool  { return o == OptionalNone }
 
 var FieldNameRegex = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
 
