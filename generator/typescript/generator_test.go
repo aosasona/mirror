@@ -218,7 +218,7 @@ func Test_GenerateStruct(t *testing.T) {
 						},
 						Meta: meta.Meta{
 							OriginalName: "Baz",
-							Name:         "Baz",
+							Name:         "",
 							Type:         "",
 							Optional:     meta.OptionalFalse,
 						},

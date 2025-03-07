@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"go.trulyao.dev/mirror/v2/config"
+	"go.trulyao.dev/mirror/v2/extractor/meta"
 	"go.trulyao.dev/mirror/v2/parser"
 	"go.trulyao.dev/mirror/v2/types"
 )
@@ -73,7 +74,7 @@ func (g *Generator) GenerateItem(item parser.Item) (string, error) {
 		err        error
 	)
 
-	baseType, err = g.generateBaseType(item)
+	baseType, err = g.generateBaseType(item, nil)
 	if err != nil {
 		return "", err
 	}
@@ -97,7 +98,7 @@ func (g *Generator) GenerateItemType(item parser.Item) (string, error) {
 		err      error
 	)
 
-	if itemType, err = g.generateBaseType(item); err != nil {
+	if itemType, err = g.generateBaseType(item, nil); err != nil {
 		return "", err
 	}
 
@@ -106,7 +107,11 @@ func (g *Generator) GenerateItemType(item parser.Item) (string, error) {
 
 // generateBaseType generates the base type for the item without any additional information
 // For example, a scalar type will return `string` or `number` while a list will return `string[]` or `Array<string>`, this is then used by `GenerateItem` to generate the full type definition
-func (g *Generator) generateBaseType(item parser.Item, nestingLevel ...int) (string, error) {
+func (g *Generator) generateBaseType(
+	item parser.Item,
+	metadata *meta.Meta,
+	nestingLevel ...int,
+) (string, error) {
 	var (
 		baseType string
 		err      error
@@ -140,7 +145,15 @@ func (g *Generator) generateBaseType(item parser.Item, nestingLevel ...int) (str
 		return "", errors.New("failed to generate base type")
 	}
 
-	if item.IsNullable() {
+	// Check meta for nullability and optionality
+	var optional meta.Optional
+	if metadata != nil {
+		optional = metadata.Optional
+	}
+
+	isOptional := item.IsNullable() && optional.None()
+	isOverrideOptional := optional.True()
+	if isOptional || isOverrideOptional {
 		if g.config.PreferNullForNullable {
 			baseType += " | null"
 		} else {
@@ -273,9 +286,10 @@ func (g *Generator) generateStruct(item *parser.Struct, nestingLevel int) (strin
 		// if the field has an override type (using the `mirror` tag), use that
 		if field.Meta.Type != "" {
 			fieldStr += field.Meta.Type
+			isOptional := field.BaseItem.IsNullable() && field.Meta.Optional.None()
+			isOverrideOptional := field.Meta.Optional.True()
 
-			// TODO: visit here for the nullability vs optional issue
-			if field.Meta.Optional.True() || field.BaseItem.IsNullable() {
+			if isOptional || isOverrideOptional {
 				if g.config.PreferNullForNullable {
 					fieldStr += " | null"
 				} else {
@@ -292,10 +306,11 @@ func (g *Generator) generateStruct(item *parser.Struct, nestingLevel int) (strin
 				fieldStr += field.BaseItem.Name()
 			} else {
 				// Generate the base type for the field
-				generatedType, err := g.generateBaseType(field.BaseItem, nestingLevel+1)
+				generatedType, err := g.generateBaseType(field.BaseItem, &field.Meta, nestingLevel+1)
 				if err != nil {
 					return "", err
 				}
+
 				fieldStr += generatedType
 			}
 		}
@@ -359,7 +374,7 @@ func (g *Generator) generateList(item *parser.List, nestingLevel int) (string, e
 		// If inline objects are enabled, generate the base type for the item
 		baseType = item.BaseItem.Name()
 		if g.config.InlineObjects {
-			if baseType, err = g.generateBaseType(item.BaseItem, nestingLevel); err != nil {
+			if baseType, err = g.generateBaseType(item.BaseItem, nil, nestingLevel); err != nil {
 				return "", err
 			}
 		}
@@ -394,7 +409,7 @@ func (g *Generator) generateMap(item *parser.Map, nestingLevel int) (string, err
 		return "", err
 	}
 
-	if valueType, err = g.generateBaseType(item.Value, nestingLevel); err != nil {
+	if valueType, err = g.generateBaseType(item.Value, nil, nestingLevel); err != nil {
 		return "", err
 	}
 
@@ -414,7 +429,7 @@ func (g *Generator) generateFunction(item *parser.Function) (string, error) {
 
 		// Scalar types are always expanded to their types (e.g. string, number, etc) by default
 		if g.config.InlineObjects || param.IsScalar() {
-			if paramStr, err = g.generateBaseType(param); err != nil {
+			if paramStr, err = g.generateBaseType(param, nil); err != nil {
 				return "", err
 			}
 		} else {
@@ -430,7 +445,7 @@ func (g *Generator) generateFunction(item *parser.Function) (string, error) {
 
 	if len(item.Returns) > 0 {
 		returnItem := item.Returns[0]
-		if returnType, err = g.generateBaseType(returnItem); err != nil {
+		if returnType, err = g.generateBaseType(returnItem, nil); err != nil {
 			return "", err
 		}
 

@@ -22,6 +22,8 @@ func (o Optional) String() string {
 		return "none"
 	}
 }
+
+// TODO: rename to IsNone, IsTrue, IsFalse and remove IsOptional
 func (o Optional) IsOptional() bool { return o == OptionalTrue }
 func (o Optional) True() bool       { return o == OptionalTrue }
 func (o Optional) False() bool      { return o == OptionalFalse }
