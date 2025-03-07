@@ -77,6 +77,15 @@
 
 # 2.8.0
 
+- Added new custom mirror tag parser
+  > This shouldn't really be a breaking change for most users but it is a significant enough change as it introduces new errors and warning(s).
+
+# 2.8.1
+
+- [REGRESSION] Fix name precedence in parser
+
+# 2.9.0
+
 - Added a new `meta.Optional` type to represent the `optional` attribute.
   > Instead of just reporting false negatives in cases where the attribute was not even set at all in a mirror tag, we can now accurately represent the state with one of `OptionalNone`, `OptionalTrue` or `OptionalFalse`. This was crucial to deciding when a user was actively setting a field to be optional or not, the previous approach would have ALWAYS been false by default and cause every single field with `Nullable` set to `true` to be overriden.
 - Override field nullability based on the `optional` property in the mirror tag
