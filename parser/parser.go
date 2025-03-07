@@ -410,7 +410,6 @@ func (p *Parser) parseField(fieldName string, field reflect.StructField) (meta.M
 }
 
 // Parse exempted structs like `sql.NullX` types and other built-in types
-// TODO: add support for more exempted structs
 func (p *Parser) parseExemptedStructs(source reflect.Type, nullable bool) (Item, error) {
 	switch {
 	case source == reflect.TypeOf(time.Time{}):
@@ -422,7 +421,7 @@ func (p *Parser) parseExemptedStructs(source reflect.Type, nullable bool) (Item,
 	case source == reflect.TypeOf([]byte{}):
 		return &Scalar{source.Name(), TypeString, nullable}, nil
 
-	case source == reflect.TypeOf([]interface{}{}):
+	case source == reflect.TypeOf([]any{}):
 		return &List{
 			ItemName: source.Name(),
 			BaseItem: &Scalar{"any", TypeAny, nullable},

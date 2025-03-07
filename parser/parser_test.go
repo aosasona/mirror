@@ -12,8 +12,6 @@ import (
 	"go.trulyao.dev/mirror/v2/parser"
 )
 
-// TODO: add tests for a mix of JSON and MIRROR tags
-
 type Test struct {
 	Description string
 	Source      any
@@ -204,8 +202,9 @@ func Test_ParseItem_Struct(t *testing.T) {
 	}
 
 	type User struct {
-		Username string `json:"uname"`
-		Password string `json:"pass"`
+		FullName *string `json:"name"  mirror:"name:full_name,optional:false"`
+		Username string  `json:"uname"`
+		Password string  `json:"pass"`
 	}
 
 	type Account struct {
@@ -233,7 +232,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 							OriginalName: "FirstName",
 							Name:         "FirstName",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -245,7 +244,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 							OriginalName: "LastName",
 							Name:         "LastName",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -261,13 +260,25 @@ func Test_ParseItem_Struct(t *testing.T) {
 				ItemName: "User",
 				Fields: []parser.Field{
 					{
+						ItemName: "full_name",
+						BaseItem: &parser.Scalar{"string", parser.TypeString, true},
+						Meta: meta.Meta{
+							OriginalName: "FullName",
+							Name:         "full_name",
+							Type:         "",
+							Optional:     meta.OptionalFalse,
+							Skip:         false,
+						},
+					},
+
+					{
 						ItemName: "uname",
 						BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 						Meta: meta.Meta{
 							OriginalName: "Username",
 							Name:         "uname",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -279,7 +290,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 							OriginalName: "Password",
 							Name:         "pass",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -300,13 +311,24 @@ func Test_ParseItem_Struct(t *testing.T) {
 							ItemName: "User",
 							Fields: []parser.Field{
 								{
+									ItemName: "full_name",
+									BaseItem: &parser.Scalar{"string", parser.TypeString, true},
+									Meta: meta.Meta{
+										OriginalName: "FullName",
+										Name:         "full_name",
+										Type:         "",
+										Optional:     meta.OptionalFalse,
+										Skip:         false,
+									},
+								},
+								{
 									ItemName: "uname",
 									BaseItem: &parser.Scalar{"string", parser.TypeString, false},
 									Meta: meta.Meta{
 										OriginalName: "Username",
 										Name:         "uname",
 										Type:         "",
-										Optional:     false,
+										Optional:     meta.OptionalNone,
 										Skip:         false,
 									},
 								},
@@ -318,7 +340,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 										OriginalName: "Password",
 										Name:         "pass",
 										Type:         "",
-										Optional:     false,
+										Optional:     meta.OptionalNone,
 										Skip:         false,
 									},
 								},
@@ -329,7 +351,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 							OriginalName: "User",
 							Name:         "linked_user",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -341,7 +363,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 							OriginalName: "CreatedAt",
 							Name:         "created_at",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -363,7 +385,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 							OriginalName: "ID",
 							Name:         "ID",
 							Type:         "string",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         true,
 						},
 					},
@@ -374,7 +396,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 							OriginalName: "Scope",
 							Name:         "scope",
 							Type:         "'reset' | 'change'",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -385,7 +407,7 @@ func Test_ParseItem_Struct(t *testing.T) {
 							OriginalName: "CreatedAt",
 							Name:         "created_at",
 							Type:         "Date",
-							Optional:     true,
+							Optional:     meta.OptionalTrue,
 							Skip:         true,
 						},
 					},
@@ -468,7 +490,7 @@ func Test_ParseItem_List(t *testing.T) {
 								OriginalName: "Name",
 								Name:         "Name",
 								Type:         "",
-								Optional:     false,
+								Optional:     meta.OptionalNone,
 								Skip:         false,
 							},
 						},
@@ -564,7 +586,7 @@ func Test_ParseItem_List(t *testing.T) {
 								OriginalName: "Name",
 								Name:         "Name",
 								Type:         "",
-								Optional:     false,
+								Optional:     meta.OptionalNone,
 								Skip:         false,
 							},
 						},
@@ -664,7 +686,7 @@ func Test_ParseItem_Function(t *testing.T) {
 									OriginalName: "Name",
 									Name:         "Name",
 									Type:         "",
-									Optional:     false,
+									Optional:     meta.OptionalNone,
 									Skip:         false,
 								},
 							},
@@ -713,7 +735,7 @@ func Test_ParseEmbeddedStruct(t *testing.T) {
 							OriginalName: "Name",
 							Name:         "Name",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -724,7 +746,7 @@ func Test_ParseEmbeddedStruct(t *testing.T) {
 							OriginalName: "Age",
 							Name:         "Age",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -745,7 +767,7 @@ func Test_ParseEmbeddedStruct(t *testing.T) {
 							OriginalName: "EmbeddedString",
 							Name:         "embedded_string",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -757,7 +779,7 @@ func Test_ParseEmbeddedStruct(t *testing.T) {
 							OriginalName: "EmbeddedInt",
 							Name:         "EmbeddedInt",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -769,7 +791,7 @@ func Test_ParseEmbeddedStruct(t *testing.T) {
 							OriginalName: "EmbeddedBool",
 							Name:         "probably",
 							Type:         "number",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -880,7 +902,7 @@ func Test_ParserHooks(t *testing.T) {
 							OriginalName: "Name",
 							Name:         "Name",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -893,7 +915,7 @@ func Test_ParserHooks(t *testing.T) {
 							OriginalName: "Age",
 							Name:         "AddedAge",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -914,7 +936,7 @@ func Test_ParserHooks(t *testing.T) {
 							OriginalName: "Name",
 							Name:         "Name",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -935,7 +957,7 @@ func Test_ParserHooks(t *testing.T) {
 							OriginalName: "FirstName",
 							Name:         "FName",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -947,7 +969,7 @@ func Test_ParserHooks(t *testing.T) {
 							OriginalName: "LastName",
 							Name:         "LastName",
 							Type:         "",
-							Optional:     false,
+							Optional:     meta.OptionalNone,
 							Skip:         false,
 						},
 					},
@@ -969,7 +991,7 @@ func Test_ParserHooks(t *testing.T) {
 					OriginalName: "Age",
 					Name:         "AddedAge",
 					Type:         "",
-					Optional:     false,
+					Optional:     meta.OptionalNone,
 					Skip:         false,
 				},
 			})
@@ -1125,10 +1147,13 @@ func Test_ParseCustomItem(t *testing.T) {
 	}
 
 	p := parser.New()
-	p.AddCustomTypes([]parser.CustomType{
+	err := p.AddCustomTypes([]parser.CustomType{
 		{"__internal_scalar_type", internalScalarItem},
 		{"__internal_struct_type", internalStructItem},
 	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
 
 	runTests(t, tests, p)
 }
@@ -1146,7 +1171,7 @@ func runTest(t *testing.T, tt Test, optParse ...*parser.Parser) {
 		p = optParse[0]
 	} else {
 		p = parser.New()
-		p.SetFlattenEmbeddedTypes(true) // TODO: make this better
+		p.SetFlattenEmbeddedTypes(true)
 	}
 
 	got, err := p.Parse(reflect.TypeOf(tt.Source))

@@ -88,7 +88,7 @@ func main() {
 			if field.ItemName == "desc" {
 				field.Meta.Name = "description"
 				field.ItemName = "description"
-				field.Meta.Optional = true
+				field.Meta.Optional = meta.OptionalTrue
 			}
 
 			return nil

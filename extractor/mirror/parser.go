@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+
+	mt "go.trulyao.dev/mirror/v2/extractor/meta"
 )
 
 func ref[T any](t T) *T {
@@ -42,7 +44,7 @@ type ParsedMeta struct {
 	Name     *string
 	Type     *string
 	Skip     *bool
-	Optional *bool
+	Optional mt.Optional
 }
 
 type MetaParser struct {
@@ -52,9 +54,7 @@ type MetaParser struct {
 
 func NewMetaParser(input string) *MetaParser {
 	input = strings.TrimSpace(input)
-	return &MetaParser{
-		input,
-	}
+	return &MetaParser{input}
 }
 
 // Parse the input string and return a ParsedMeta struct
@@ -68,7 +68,11 @@ func (p *MetaParser) Parse() (*ParsedMeta, error) {
 		return nil, err
 	}
 	if optional != nil {
-		meta.Optional = optional
+		if *optional {
+			meta.Optional = mt.OptionalTrue
+		} else {
+			meta.Optional = mt.OptionalFalse
+		}
 	}
 
 	// Find a valid `skip:1|0|true|false` part of the string

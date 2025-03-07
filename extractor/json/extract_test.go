@@ -54,7 +54,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 				OriginalName: "Name",
 				Name:         "first_name",
 				Skip:         false,
-				Optional:     false,
+				Optional:     meta.OptionalNone,
 			},
 		},
 		{
@@ -64,7 +64,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 				OriginalName: "OmitEmpty",
 				Name:         "OmitEmpty",
 				Skip:         false,
-				Optional:     true,
+				Optional:     meta.OptionalTrue,
 			},
 		},
 		{
@@ -74,7 +74,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 				OriginalName: "ShouldSkip",
 				Name:         "ShouldSkip",
 				Skip:         true,
-				Optional:     false,
+				Optional:     meta.OptionalNone,
 			},
 		},
 		{
@@ -89,7 +89,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 				OriginalName: "Default",
 				Name:         "Default",
 				Skip:         false,
-				Optional:     false,
+				Optional:     meta.OptionalNone,
 			},
 		},
 		{
@@ -99,7 +99,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 				OriginalName: "Tagless",
 				Name:         "Tagless",
 				Skip:         false,
-				Optional:     false,
+				Optional:     meta.OptionalNone,
 			},
 		},
 		{
@@ -109,7 +109,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 				OriginalName: "Formed",
 				Name:         "formed",
 				Skip:         false,
-				Optional:     true,
+				Optional:     meta.OptionalTrue,
 			},
 		},
 		{
@@ -119,7 +119,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 				OriginalName: "AsStr",
 				Name:         "AsStr",
 				Skip:         false,
-				Optional:     false,
+				Optional:     meta.OptionalNone,
 				Type:         "string",
 			},
 		},
@@ -130,7 +130,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 				OriginalName: "Dash",
 				Name:         "-",
 				Skip:         false,
-				Optional:     false,
+				Optional:     meta.OptionalNone,
 			},
 		},
 		{
@@ -140,7 +140,7 @@ func TestJSONTagParser_Parse(t *testing.T) {
 				OriginalName: "WithNameOnly",
 				Name:         "name",
 				Skip:         false,
-				Optional:     false,
+				Optional:     meta.OptionalNone,
 			},
 		},
 	}

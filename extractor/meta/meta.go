@@ -4,6 +4,29 @@ import (
 	"regexp"
 )
 
+type Optional int8
+
+const (
+	OptionalNone Optional = iota
+	OptionalTrue
+	OptionalFalse
+)
+
+func (o Optional) String() string {
+	switch o {
+	case OptionalTrue:
+		return "true"
+	case OptionalFalse:
+		return "false"
+	default:
+		return "none"
+	}
+}
+
+func (o Optional) IsTrue() bool  { return o == OptionalTrue }
+func (o Optional) IsFalse() bool { return o == OptionalFalse }
+func (o Optional) IsNone() bool  { return o == OptionalNone }
+
 var FieldNameRegex = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
 
 type Meta struct {
@@ -17,7 +40,7 @@ type Meta struct {
 	Type string
 
 	// Optional is a flag indicating if the field is optional, depending on the target language, this may or may not be the same as nullable
-	Optional bool
+	Optional Optional
 
 	// Skip is a flag indicating if the field should be skipped during generation
 	Skip bool

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"go.trulyao.dev/mirror/v2/config"
+	"go.trulyao.dev/mirror/v2/extractor/meta"
 	"go.trulyao.dev/mirror/v2/generator/typescript"
 	"go.trulyao.dev/mirror/v2/parser"
 )
@@ -189,6 +190,37 @@ func Test_GenerateStruct(t *testing.T) {
 							ItemName: "Baz",
 							ItemType: parser.TypeString,
 							Nullable: false,
+						},
+					},
+				},
+				Nullable: false,
+			},
+			Expect: "export type Foo = {\n    Bar: string;\n};",
+			Config: typescript.Config{
+				InludeSemiColon:  true,
+				IndentationType:  config.IndentSpace,
+				IndentationCount: 4,
+				InlineObjects:    true,
+			},
+		},
+
+		{
+			Description: "generate struct with nullable field + optional disabled",
+			Src: &parser.Struct{
+				ItemName: "Foo",
+				Fields: []parser.Field{
+					{
+						ItemName: "Bar",
+						BaseItem: &parser.Scalar{
+							ItemName: "Baz",
+							ItemType: parser.TypeString,
+							Nullable: true,
+						},
+						Meta: meta.Meta{
+							OriginalName: "Baz",
+							Name:         "",
+							Type:         "",
+							Optional:     meta.OptionalFalse,
 						},
 					},
 				},

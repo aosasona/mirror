@@ -74,3 +74,13 @@
 
 - Fixed the naive parsing of mirror tags
   > `mirror:"type:{ 'foo': bar}"` will now be parsed correctly instead of skipping due to the presence of another `:` that we were naively splitting on
+
+# 2.8.0
+
+- Added a new `meta.Optional` type to represent the `optional` attribute.
+  > Instead of just reporting false negatives in cases where the attribute was not even set at all in a mirror tag, we can now accurately represent the state with one of `OptionalNone`, `OptionalTrue` or `OptionalFalse`. This was crucial to deciding when a user was actively setting a field to be optional or not, the previous approach would have ALWAYS been false by default and cause every single field with `Nullable` set to `true` to be overriden.
+- Override field nullability based on the `optional` property in the mirror tag
+  > If your type has "native" nullibility (e.g `name *string`), i.e. `Nullable` is set to `true`, and the `optional` tag is set to `false` as in `optional:false`, your type will be generated without being nullable (e.g. `name: string` instead of `name: string | undefined`). This was previously not properly used or implemented in the past and required using the `type` override.
+
+> [!WARNING]
+> In the future, we might have to split `nullability` and `optionality` since they kind of mix too uncomfortably and might change this behaviour; making it too difficult to do something like `foo?: string | null` at the moment (as far as I can remember now anyway).
