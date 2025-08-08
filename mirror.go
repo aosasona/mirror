@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"go.trulyao.dev/mirror/v2/config"
+	"go.trulyao.dev/mirror/v2/generator/swift"
 	"go.trulyao.dev/mirror/v2/generator/typescript"
 	"go.trulyao.dev/mirror/v2/parser"
 	"go.trulyao.dev/mirror/v2/types"
@@ -222,8 +223,14 @@ func (m *Mirror) SaveToFile(target types.TargetInterface, code string) error {
 }
 
 // Check that all built-in implementations match the interface types
+var _ types.ParserInterface = &parser.Parser{}
+
 var (
-	_ types.ParserInterface    = &parser.Parser{}
 	_ types.TargetInterface    = &typescript.Config{}
 	_ types.GeneratorInterface = &typescript.Generator{}
+)
+
+var (
+	_ types.TargetInterface    = &swift.Config{}
+	_ types.GeneratorInterface = &swift.Generator{}
 )
